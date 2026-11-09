@@ -1,4 +1,4 @@
-<!-- VERUS CARRINHOS v0.1.2 | Gerado: 2026-11-09 UTC -->
+<!-- VERUS CARRINHOS v0.1.3 | Gerado: 2026-11-09 UTC -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -31,7 +31,7 @@ button{ cursor:pointer; }
 /* trilho de ícones + painel colapsável (estilo Supabase) */
 .nav{ display:flex; height:100%; position:sticky; top:0; z-index:5; padding-left:56px; }
 .rail{ position:absolute; left:0; top:0; bottom:0; width:56px; background:var(--rail); display:flex; flex-direction:column; padding:10px 8px; gap:2px; overflow:hidden; transition:width .16s ease, box-shadow .16s ease; z-index:12; }
-.rail:hover{ width:216px; box-shadow:6px 0 24px rgba(0,0,0,.28); }
+@media (hover:hover){ .rail:hover{ width:216px; box-shadow:6px 0 24px rgba(0,0,0,.28); } }
 .rail .logo{ display:flex; align-items:center; gap:10px; height:36px; margin:0 0 10px 2px; color:#fff; white-space:nowrap; }
 .rail .logo i{ flex:0 0 36px; width:36px; height:36px; border-radius:10px; background:#3a4045; display:grid; place-items:center; font-style:normal; font-weight:800; font-size:15px; }
 .rail .logo span{ font-weight:800; letter-spacing:.06em; font-size:14px; } .rail .logo span em{ font-style:normal; font-weight:400; opacity:.6; }
@@ -39,7 +39,7 @@ button{ cursor:pointer; }
 .rail button:hover{ background:#2f3539; color:var(--rail-hi); }
 .rail button.on{ background:#3a4045; color:var(--rail-hi); }
 .rail button svg{ flex:0 0 20px; width:20px; height:20px; }
-.rail button .lbl{ opacity:0; transition:opacity .12s; } .rail:hover button .lbl{ opacity:1; }
+.rail button .lbl{ opacity:0; transition:opacity .12s; } @media (hover:hover){ .rail:hover button .lbl{ opacity:1; } }
 .rail .sep{ height:1px; background:#30363a; margin:6px 4px; }
 .rail .esp{ flex:1; }
 .nav.sem-painel .panel{ display:none; }
@@ -80,7 +80,16 @@ label{ display:block; font-size:12.5px; font-weight:600; color:var(--ink2); marg
 .campo input,.campo select,.campo textarea{ width:100%; border:1px solid var(--line); background:var(--surface); border-radius:8px; padding:8px 10px; }
 .grid{ display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:10px 12px; }
 .c2{ grid-column:span 2; } .c3{ grid-column:span 3; } .c4{ grid-column:span 4; } .c6{ grid-column:span 6; }
-@media (max-width:720px){ .c2,.c3,.c4{ grid-column:span 6; } .panel{ position:fixed; left:56px; top:0; bottom:0; z-index:20; } }
+@media (max-width:720px){ .c2,.c3,.c4{ grid-column:span 6; } }
+#navFundo{ display:none; }
+@media (max-width:1024px){
+  .nav .panel{ display:none; position:fixed; left:56px; top:0; bottom:0; z-index:21; width:min(260px,calc(100vw - 72px)); box-shadow:8px 0 28px rgba(0,0,0,.35); padding-top:calc(14px + env(safe-area-inset-top,0px)); }
+  .nav.aberto:not(.sem-painel) .panel{ display:block; }
+  .nav.aberto:not(.sem-painel) ~ #navFundo, body.nav-on #navFundo{ display:block; position:fixed; inset:0; left:56px; z-index:20; background:rgba(10,12,13,.45); }
+  body.nav-on .nav{ z-index:30; }
+  .card{ overflow-x:auto; } .t th,.t td{ white-space:nowrap; }
+  .conteudo{ padding:14px 12px; }
+}
 dialog{ border:1px solid var(--line); border-radius:14px; padding:0; background:var(--surface); color:var(--ink); width:min(760px,95vw); }
 dialog::backdrop{ background:rgba(10,12,13,.5); }
 .dh{ padding:14px 18px; border-bottom:1px solid var(--line); font-weight:700; font-size:15px; }
@@ -181,6 +190,7 @@ a.mini{ font-size:12.5px; font-weight:600; color:var(--ink2); cursor:pointer; te
   </div>
 </div>
 <dialog id="dlg"><div class="dh" id="dlgT"></div><div class="db" id="dlgB"></div><div class="df" id="dlgF"></div></dialog>
+<div id="navFundo" onclick="fecharNav()"></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <div id="relView" hidden></div>
 
@@ -211,8 +221,12 @@ const MODS={
   pos:{nome:'Pós-venda',itens:[['garantias','Garantias',1],['rastreio','Rastreabilidade',1]]},
 };
 let mod='home', tela='home';   // sempre abre no Início
-function abrirMod(m){ mod=m; tela=MODS[m].itens[0][0]; FV=null; render(); }
-function abrirTela(t){ if(t==='fichas'&&FV&&FV.sujo&&!confirm('Sair sem salvar as alterações desta ficha?')) return; tela=t; FV=null; render(); }
+const telaPequena=()=>window.matchMedia('(max-width:1024px)').matches;
+function fecharNav(){ $('nav').classList.remove('aberto'); document.body.classList.remove('nav-on'); }
+function abrirMod(m){ const mesmo=m===mod; mod=m; if(!mesmo){ tela=MODS[m].itens[0][0]; FV=null; }
+  if(telaPequena()&&m!=='home'){ const ab=!(mesmo&&$('nav').classList.contains('aberto')); $('nav').classList.toggle('aberto',ab); document.body.classList.toggle('nav-on',ab); } else fecharNav();
+  render(); }
+function abrirTela(t){ if(t==='fichas'&&FV&&FV.sujo&&!confirm('Sair sem salvar as alterações desta ficha?')) return; tela=t; FV=null; fecharNav(); render(); }
 function togNav(){}
 function renderNav(){
   document.querySelectorAll('.rail button[data-mod]').forEach(b=>b.classList.toggle('on',b.dataset.mod===mod));
@@ -346,7 +360,7 @@ function telaMovimentos(){ const M=db.lista('movimentos');
   return `<h1>Movimentações</h1><p class="sub">Entradas e transferências de local, da mais recente para a mais antiga.</p><div class="card">${M.length?`<table class="t"><tr><th>Data</th><th>Tipo</th><th>Chassi / código</th><th>Item</th><th>De</th><th>Para</th><th class="r">Qtd</th><th>Observação</th></tr>${M.map(m=>`<tr><td>${new Date(m.em).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</td><td>${esc(m.tipo)}</td><td><b>${esc(m.chassi)}</b></td><td>${esc(m.modelo)}</td><td>${esc(m.de)}</td><td>${esc(m.para)}</td><td class="r">${m.qtd!=null?m.qtd:1}</td><td>${esc(m.obs||'')}</td></tr>`).join('')}</table>`:'<div class="vazio">Nenhuma movimentação registrada ainda.</div>'}</div>`; }
 
 // ═════════ BANCO (Supabase próprio) · cache em memória + gravação direta no banco ═════════
-const APP_VERSION='v0.1.2';
+const APP_VERSION='v0.1.3';
 const SB_URL='https://hmznfanyotwqqonjdxth.supabase.co', SB_KEY='sb_publishable_deHWae2ysLOwSQFwSfTV7Q_0irXh_9x';
 const sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
 let EMP_ID=null, USR=null, C={empresa:{},locais:[],modelos:[],clientes:[],fornecedores:[],transportadores:[],vendedores:[],itens:[],veiculos:[],eventos:[],recebimentos:[],receb_itens:[],saldos:[],movimentos:[],vendas:[],venda_veiculos:[],venda_itens:[]};
