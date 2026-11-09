@@ -1,0 +1,417 @@
+<!-- VERUS CARRINHOS v0.1.0 | Gerado: 2026-11-09 UTC -->
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>VERUS Carrinhos · gestão</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<style>
+:root{
+  --bg:#f4f5f6; --surface:#ffffff; --surface2:#fafbfb; --ink:#1c2023; --ink2:#4d555b; --muted:#80888e; --line:#e1e4e7;
+  --rail:#1f2326; --rail-ink:#c9ced2; --rail-hi:#ffffff; --panel:#2a2f33;
+  --brand:#2f3437; --on-brand:#ffffff; --soft:#eceef0; --ok:#1f7a4d; --ok-soft:#e3f2ea; --warn:#a86b12; --warn-soft:#fbf1df; --red:#b42318; --red-soft:#fde8e6;
+  color-scheme:light; box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#121516; --surface:#191d1f; --surface2:#1d2124; --ink:#e8ecee; --ink2:#b4bcc1; --muted:#858d93; --line:#2b3135;
+  --brand:#c9ced2; --on-brand:#15181a; --soft:#252a2d; --ok:#5cc28f; --ok-soft:#173326; --warn:#e0a84a; --warn-soft:#3a2e17; --red:#f2786b; --red-soft:#3a1d1a; color-scheme:dark; } }
+:root[data-theme="dark"]{ --bg:#121516; --surface:#191d1f; --surface2:#1d2124; --ink:#e8ecee; --ink2:#b4bcc1; --muted:#858d93; --line:#2b3135; --brand:#c9ced2; --on-brand:#15181a; --soft:#252a2d; --ok:#5cc28f; --ok-soft:#173326; --warn:#e0a84a; --warn-soft:#3a2e17; --red:#f2786b; --red-soft:#3a1d1a; color-scheme:dark; }
+*,*::before,*::after{ box-sizing:border-box; }
+html,body{ height:100%; }
+body{ margin:0; background:var(--bg); color:var(--ink); font-family:'Manrope',system-ui,-apple-system,'Segoe UI',sans-serif; font-size:14px; line-height:1.45; }
+button,input,select,textarea{ font:inherit; color:inherit; }
+button{ cursor:pointer; }
+:focus-visible{ outline:3px solid color-mix(in srgb,var(--brand) 40%,transparent); outline-offset:1px; }
+.app{ display:grid; grid-template-columns:auto minmax(0,1fr); height:100%; }
+/* trilho de ícones + painel colapsável (estilo Supabase) */
+.nav{ display:flex; height:100%; position:sticky; top:0; z-index:5; }
+.rail{ width:56px; background:var(--rail); display:flex; flex-direction:column; align-items:center; padding:10px 0; gap:4px; }
+.rail .logo{ width:36px; height:36px; border-radius:10px; background:#3a4045; color:#fff; display:grid; place-items:center; font-weight:800; font-size:15px; margin-bottom:10px; }
+.rail button{ width:40px; height:40px; border:0; border-radius:10px; background:transparent; color:var(--rail-ink); display:grid; place-items:center; position:relative; }
+.rail button:hover{ background:#2f3539; color:var(--rail-hi); }
+.rail button.on{ background:#3a4045; color:var(--rail-hi); }
+.rail button svg{ width:20px; height:20px; }
+.rail button .tip{ position:absolute; left:48px; top:50%; transform:translateY(-50%); background:#0f1112; color:#fff; font-size:12px; padding:4px 8px; border-radius:6px; white-space:nowrap; pointer-events:none; opacity:0; transition:opacity .12s; }
+.nav.fechado .rail button:hover .tip{ opacity:1; }
+.rail .esp{ flex:1; }
+.panel{ width:220px; background:var(--panel); color:#d7dbde; padding:14px 10px; overflow:auto; transition:width .18s, padding .18s; }
+.nav.fechado .panel{ width:0; padding:14px 0; overflow:hidden; }
+.panel h3{ margin:4px 8px 10px; font-size:13px; color:#fff; letter-spacing:.01em; }
+.panel a{ display:flex; align-items:center; gap:8px; padding:7px 9px; border-radius:8px; color:#c9ced2; text-decoration:none; font-size:13.5px; cursor:pointer; white-space:nowrap; }
+.panel a:hover{ background:#353b40; color:#fff; }
+.panel a.on{ background:#3d4449; color:#fff; font-weight:700; }
+.panel a .em{ margin-left:auto; font-size:11px; color:#8f989e; }
+.panel .grupo{ font-size:11px; color:#8f989e; margin:12px 9px 4px; }
+.main{ min-width:0; display:flex; flex-direction:column; height:100%; overflow:auto; }
+.top{ position:sticky; top:0; z-index:3; background:var(--surface); border-bottom:1px solid var(--line); display:flex; align-items:center; gap:12px; padding:10px 18px; }
+.top .migalha{ color:var(--muted); font-size:13px; } .top .migalha b{ color:var(--ink); }
+.top .acoes{ margin-left:auto; display:flex; gap:8px; flex-wrap:wrap; }
+.btn{ border:1px solid var(--line); background:var(--surface); border-radius:8px; padding:7px 12px; font-weight:600; font-size:13.5px; }
+.btn:hover{ border-color:var(--ink2); }
+.btn-p{ background:var(--brand); border-color:var(--brand); color:var(--on-brand); }
+.btn-x{ color:var(--red); }
+.btn-s{ padding:4px 9px; font-size:12.5px; }
+.conteudo{ padding:18px; max-width:1240px; width:100%; }
+h1{ font-size:21px; margin:0 0 4px; letter-spacing:-.01em; }
+.sub{ color:var(--muted); margin:0 0 14px; }
+.card{ background:var(--surface); border:1px solid var(--line); border-radius:12px; }
+.kpis{ display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:10px; margin-bottom:14px; }
+.kpi{ padding:12px 14px; } .kpi small{ display:block; color:var(--muted); font-size:12.5px; } .kpi b{ font-size:20px; letter-spacing:-.01em; }
+table.t{ width:100%; border-collapse:collapse; font-size:13.5px; }
+.t th{ text-align:left; font-size:12px; color:var(--muted); font-weight:600; padding:9px 12px; border-bottom:1px solid var(--line); background:var(--surface2); position:sticky; top:0; }
+.t td{ padding:9px 12px; border-bottom:1px solid var(--line); vertical-align:middle; }
+.t tr.click{ cursor:pointer; } .t tr.click:hover td{ background:var(--surface2); }
+.t .r{ text-align:right; font-variant-numeric:tabular-nums; }
+.vazio{ padding:28px; text-align:center; color:var(--muted); }
+.tag{ display:inline-block; padding:2px 9px; border-radius:99px; font-size:12px; font-weight:700; }
+.t-disp{ background:var(--ok-soft); color:var(--ok); } .t-res{ background:var(--warn-soft); color:var(--warn); } .t-vend{ background:var(--soft); color:var(--ink2); } .t-red{ background:var(--red-soft); color:var(--red); }
+.filtros{ display:flex; gap:8px; flex-wrap:wrap; padding:12px; border-bottom:1px solid var(--line); }
+.filtros input,.filtros select{ border:1px solid var(--line); background:var(--surface); border-radius:8px; padding:7px 10px; }
+.filtros input{ min-width:220px; flex:1; }
+label{ display:block; font-size:12.5px; font-weight:600; color:var(--ink2); margin-bottom:4px; }
+.campo input,.campo select,.campo textarea{ width:100%; border:1px solid var(--line); background:var(--surface); border-radius:8px; padding:8px 10px; }
+.grid{ display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:10px 12px; }
+.c2{ grid-column:span 2; } .c3{ grid-column:span 3; } .c4{ grid-column:span 4; } .c6{ grid-column:span 6; }
+@media (max-width:720px){ .c2,.c3,.c4{ grid-column:span 6; } .panel{ position:fixed; left:56px; top:0; bottom:0; z-index:20; } }
+dialog{ border:1px solid var(--line); border-radius:14px; padding:0; background:var(--surface); color:var(--ink); width:min(760px,95vw); }
+dialog::backdrop{ background:rgba(10,12,13,.5); }
+.dh{ padding:14px 18px; border-bottom:1px solid var(--line); font-weight:700; font-size:15px; }
+.db{ padding:16px 18px; max-height:68vh; overflow:auto; }
+.df{ padding:12px 18px; border-top:1px solid var(--line); display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap; }
+.itens-rec{ display:grid; grid-template-columns:1.4fr 1fr .8fr 1fr 1fr 36px; gap:6px; margin-bottom:6px; }
+.itens-rec input,.itens-rec select{ border:1px solid var(--line); border-radius:8px; padding:7px 8px; background:var(--surface); width:100%; }
+.itens-cab{ display:grid; grid-template-columns:1.4fr 1fr .8fr 1fr 1fr 36px; gap:6px; font-size:12px; color:var(--muted); font-weight:600; margin-bottom:4px; }
+.linha-tempo{ display:grid; gap:0; margin-top:6px; }
+.ev{ display:grid; grid-template-columns:18px 1fr; gap:10px; padding-bottom:12px; position:relative; }
+.ev::before{ content:""; position:absolute; left:7px; top:16px; bottom:-2px; width:2px; background:var(--line); }
+.ev:last-child::before{ display:none; }
+.ev i{ width:16px; height:16px; border-radius:50%; background:var(--brand); margin-top:2px; }
+.ev small{ color:var(--muted); display:block; }
+.ficha-cab{ display:flex; gap:10px; align-items:baseline; flex-wrap:wrap; }
+.ficha-cab b{ font-size:18px; }
+.em-breve{ padding:22px; }
+.em-breve ul{ margin:8px 0 0 18px; color:var(--ink2); }
+.toast{ position:fixed; left:50%; bottom:calc(18px + env(safe-area-inset-bottom,0px)); transform:translateX(-50%); background:var(--ink); color:var(--surface); padding:9px 15px; border-radius:9px; font-weight:600; opacity:0; pointer-events:none; transition:opacity .2s; z-index:50; }
+.toast.on{ opacity:1; }
+@media (prefers-reduced-motion: reduce){ .panel,.toast,.rail button .tip{ transition:none; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="nav" id="nav" aria-label="Módulos">
+    <div class="rail">
+      <div class="logo" title="VERUS Carrinhos">V</div>
+      <button type="button" data-mod="cad" onclick="abrirMod('cad')" aria-label="Cadastros"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h6M7 13h10M7 17h4"/></svg><span class="tip">Cadastros</span></button>
+      <button type="button" data-mod="log" onclick="abrirMod('log')" aria-label="Logística"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/></svg><span class="tip">Logística</span></button>
+      <button type="button" data-mod="fin" onclick="abrirMod('fin')" aria-label="Financeiro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="13" rx="2"/><circle cx="12" cy="12.5" r="2.5"/><path d="M6 10v5M18 10v5"/></svg><span class="tip">Financeiro</span></button>
+      <button type="button" data-mod="com" onclick="abrirMod('com')" aria-label="Comercial"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17h16l-2-7H6z"/><circle cx="8" cy="19.5" r="1.5"/><circle cx="16" cy="19.5" r="1.5"/><path d="M8 10l2-5h6"/></svg><span class="tip">Comercial</span></button>
+      <button type="button" data-mod="pos" onclick="abrirMod('pos')" aria-label="Pós-venda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg><span class="tip">Pós-venda</span></button>
+      <div class="esp"></div>
+      <button type="button" onclick="togNav()" aria-label="Recolher ou abrir o menu" id="btnTog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg><span class="tip">Abrir menu</span></button>
+    </div>
+    <div class="panel" id="panel"></div>
+  </nav>
+  <div class="main">
+    <div class="top"><div class="migalha" id="migalha"></div><div class="acoes" id="acoes"></div></div>
+    <div class="conteudo" id="conteudo"></div>
+  </div>
+</div>
+<dialog id="dlg"><div class="dh" id="dlgT"></div><div class="db" id="dlgB"></div><div class="df" id="dlgF"></div></dialog>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+// ───────── armazenamento (navegador por enquanto; mesmas chaves da ficha de venda, para conversarem na versão local) ─────────
+const $=id=>document.getElementById(id);
+const ls={ get(k,d){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } }, set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); return true; }catch(e){ return false; } } };
+const esc=v=>String(v==null?'':v).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+const brl=v=>(+v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const num=s=>{ s=String(s==null?'':s).trim(); if(!s) return 0; s=s.replace(/[^\d,.-]/g,''); if(s.indexOf(',')>=0) s=s.replace(/\./g,'').replace(',','.'); return parseFloat(s)||0; };
+const fmtIn=v=>(+v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const hoje=()=>new Date().toISOString().slice(0,10);
+const dBR=v=>v?new Date(String(v).slice(0,10)+'T12:00:00').toLocaleDateString('pt-BR'):'—';
+const uid=()=>Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4);
+function toast(t){ const el=$('toast'); el.textContent=t; el.classList.add('on'); clearTimeout(toast._t); toast._t=setTimeout(()=>el.classList.remove('on'),2200); }
+
+const EST0=[['APOLO','CINZA','4L','024','MK'],['APOLO','CINZA','4L','025','MK'],['APOLO','PRETO','4L','021','Exposição'],['APOLO ULTRA','AZUL','4L','058','MK'],['APOLO ULTRA','AZUL','4L','059','MK'],['APOLO ULTRA','BRANCO','4L','046','Exposição'],['APOLO ULTRA','CINZA','4L','052','MK'],['APOLO ULTRA','PRATA','4L','056','MK'],['APOLO ULTRA','PRATA','4L','057','MK'],['FALCON','AZUL','4+2L','019','MK'],['FALCON','CINZA','4+2L','017','MK'],['FALCON','PRATA','2+2L','041','Exposição']]
+  .map(r=>({id:r[0]+'-'+r[3],modelo:r[0],cor:r[1],lugares:r[2],chassi:r[3],local:r[4],status:'disponivel',pedido:null}));
+// histórico do chassi (rastreabilidade): cada movimento grava um evento
+
+// ───────── navegação ─────────
+const MODS={
+  cad:{nome:'Cadastros',itens:[['modelos','Modelos e preços'],['itens','Peças e acessórios'],['clientes','Clientes'],['fornecedores','Fornecedores'],['transportadores','Transportadores'],['vendedores','Vendedores e comissionados'],['locais','Locais de estoque'],['empresa','Empresa e dados']]},
+  log:{nome:'Logística',itens:[['estoque','Estoque'],['recebimento','Recebimento'],['movimentos','Movimentações'],['entregas','Entregas',1]]},
+  fin:{nome:'Financeiro',itens:[['receber','Contas a receber',1],['pagar','Contas a pagar',1],['fluxo','Fluxo de caixa',1]]},
+  com:{nome:'Comercial',itens:[['fichas','Fichas de venda',1],['painel','Painel de vendas',1]]},
+  pos:{nome:'Pós-venda',itens:[['garantias','Garantias',1],['rastreio','Rastreabilidade',1]]},
+};
+let mod=ls.get('cg_mod','cad'), tela=ls.get('cg_tela','modelos');
+function abrirMod(m){ mod=m; tela=MODS[m].itens[0][0]; ls.set('cg_mod',mod); ls.set('cg_tela',tela); if($('nav').classList.contains('fechado')) togNav(true); render(); }
+function abrirTela(t){ tela=t; ls.set('cg_tela',t); render(); }
+function togNav(forcaAbrir){ const n=$('nav'); const fechar=forcaAbrir===true?false:!n.classList.contains('fechado'); n.classList.toggle('fechado',fechar); ls.set('cg_navFechado',fechar); $('btnTog').querySelector('.tip').textContent=fechar?'Abrir menu':'Recolher menu'; }
+function renderNav(){
+  document.querySelectorAll('.rail button[data-mod]').forEach(b=>b.classList.toggle('on',b.dataset.mod===mod));
+  const M=MODS[mod];
+  $('panel').innerHTML=`<h3>${M.nome}</h3>`+M.itens.map(i=>`<a class="${tela===i[0]?'on':''}" onclick="abrirTela('${i[0]}')">${i[1]}${i[2]?'<span class="em">em breve</span>':''}</a>`).join('');
+}
+function render(){
+  renderNav(); const M=MODS[mod], it=M.itens.find(i=>i[0]===tela)||M.itens[0]; tela=it[0];
+  $('migalha').innerHTML=`${M.nome} / <b>${it[1]}</b>`; $('acoes').innerHTML='';
+  const f=TELAS[tela]; $('conteudo').innerHTML=f?f():emBreve(it[1]);
+}
+function emBreve(nome){ const planos={entregas:['agenda de entregas por venda','transportador, data e janela','checklist de entrega técnica, foto e termo assinado','a data da entrega inicia a garantia'],receber:['títulos gerados pela ficha de venda (entrada, parcelas, cartão)','baixa e conciliação','vencidos e a vencer'],pagar:['comissões e fretes gerados pela venda','compras de carrinhos (recebimento)','baixa e vencimentos'],fluxo:['entradas e saídas por data','saldo projetado'],fichas:['a ficha de venda integrada, com os chassis do estoque','relatórios interno, financeiro e do cliente'],painel:['vendas por mês, modelo e vendedor','margem por venda'],garantias:['prazo por modelo (veículo e bateria)','chamados com defeito, peças e custo'],rastreio:['linha do tempo de cada chassi, do recebimento ao último chamado']};
+  return `<div class="card em-breve"><h1>${esc(nome)}</h1><p class="sub">Próxima etapa da construção.</p>${planos[tela]?'<b>O que vai ter:</b><ul>'+planos[tela].map(x=>'<li>'+x+'</li>').join('')+'</ul>':''}</div>`; }
+
+// ───────── cadastros genéricos ─────────
+const CAD={
+  clientes:{t:'Clientes',um:'cliente',campos:[['nome','Nome ou razão social','c4'],['doc','CPF ou CNPJ','c2'],['tel','Telefone','c2'],['email','E-mail','c4'],['end','Endereço','c4'],['cidade','Cidade / UF','c2'],['obs','Observações','c6','textarea']]},
+  fornecedores:{t:'Fornecedores',um:'fornecedor',campos:[['nome','Nome ou razão social','c4'],['doc','CNPJ','c2'],['origem','Origem','c2','select',['Nacional','Importação']],['contato','Contato','c2'],['tel','Telefone','c2'],['email','E-mail','c3'],['pais','País / cidade','c3'],['obs','Observações','c6','textarea']]},
+  transportadores:{t:'Transportadores',um:'transportador',campos:[['nome','Nome ou razão social','c4'],['doc','CPF ou CNPJ','c2'],['tel','Telefone','c2'],['email','E-mail','c2'],['pix','Chave PIX','c2'],['obs','Observações','c6','textarea']]},
+  itens:{t:'Peças e acessórios',um:'item',campos:[['codigo','Código','c2'],['nome','Descrição','c4'],['tipo','Tipo','c2','select',['Peça / parte','Acessório']],['un','Unidade','c1 c2','select',['UN','PAR','JG','KIT','M','L']],['custo','Custo unitário','c2'],['preco','Preço de venda','c2'],['minimo','Estoque mínimo','c2','number'],['compat','Modelos compatíveis','c4'],['obs','Observações','c6','textarea']]},
+  vendedores:{t:'Vendedores e comissionados',um:'vendedor ou comissionado',campos:[['nome','Nome','c4'],['doc','CPF ou CNPJ','c2'],['tipo','Tipo','c2','select',['Vendedor','Indicador / representante']],['com','Comissão padrão (%)','c2'],['pix','Chave PIX','c2'],['tel','Telefone','c3'],['email','E-mail','c3']]},
+};
+function telaCad(k){ const C=CAD[k], L=db.lista(k), cols=C.campos.filter(c=>c[3]!=='textarea').slice(0,5);
+  $('acoes').innerHTML=`<button class="btn btn-p" onclick="formCad('${k}')">+ Novo ${C.um}</button>`;
+  return `<h1>${C.t}</h1><p class="sub">${L.length} cadastrado(s)</p><div class="card">${L.length?`<table class="t"><tr>${cols.map(c=>`<th>${c[1]}</th>`).join('')}<th></th></tr>${L.map(x=>`<tr class="click" onclick="formCad('${k}','${x.id}')">${cols.map(c=>`<td>${esc(x[c[0]]||'—')}</td>`).join('')}<td class="r"><span class="btn btn-s">Editar</span></td></tr>`).join('')}</table>`:`<div class="vazio">Nenhum ${C.um} cadastrado. Use “+ Novo ${C.um}”.</div>`}</div>`; }
+function campoHtml(c,v){ const [k,l,cl,tp,ops]=c; v=v==null?'':v;
+  if(tp==='textarea') return `<div class="campo ${cl}"><label for="f_${k}">${l}</label><textarea id="f_${k}" rows="3">${esc(v)}</textarea></div>`;
+  if(tp==='select') return `<div class="campo ${cl}"><label for="f_${k}">${l}</label><select id="f_${k}">${ops.map(o=>`<option ${o===v?'selected':''}>${esc(o)}</option>`).join('')}</select></div>`;
+  return `<div class="campo ${cl}"><label for="f_${k}">${l}</label><input id="f_${k}" type="${tp||'text'}" value="${esc(v)}"></div>`; }
+function formCad(k,id){ const C=CAD[k], L=db.lista(k), x=L.find(i=>i.id===id)||{};
+  $('dlgT').textContent=(id?'Editar ':'Novo ')+C.um; $('dlgB').innerHTML=`<div class="grid">${C.campos.map(c=>campoHtml(c,x[c[0]])).join('')}</div>`;
+  $('dlgF').innerHTML=`${id?`<button class="btn btn-x" style="margin-right:auto" onclick="excluirCad('${k}','${id}')">Excluir</button>`:''}<button class="btn" onclick="dlg.close()">Cancelar</button><button class="btn btn-p" onclick="salvarCad('${k}','${id||''}')">Salvar</button>`; dlg.showModal(); }
+// modelos (preço + garantia), locais, empresa
+function telaModelos(){ const M=db.modelos();
+  $('acoes').innerHTML=`<button class="btn btn-p" onclick="formModelo()">+ Novo modelo</button>`;
+  return `<h1>Modelos e preços</h1><p class="sub">O nome segue o estoque: modelo + lugares (ex.: APOLO ULTRA 4L). O preço de tabela entra sozinho na ficha de venda.</p><div class="card"><table class="t"><tr><th>Modelo</th><th class="r">Preço de tabela</th><th class="r">Garantia veículo</th><th class="r">Garantia bateria</th><th class="r">Em estoque</th><th></th></tr>${M.map((m,i)=>{ const n=db.estoque().filter(c=>(c.modelo+' '+c.lugares).toUpperCase()===m.nome.toUpperCase()&&c.status==='disponivel').length; return `<tr class="click" onclick="formModelo(${i})"><td><b>${esc(m.nome)}</b></td><td class="r">${m.preco?brl(m.preco):'<span class="tag t-res">sem preço</span>'}</td><td class="r">${m.gar_veic?m.gar_veic+' meses':'—'}</td><td class="r">${m.gar_bat?m.gar_bat+' meses':'—'}</td><td class="r">${n}</td><td class="r"><span class="btn btn-s">Editar</span></td></tr>`; }).join('')}</table></div>`; }
+function formModelo(i){ const M=db.modelos(), m=i!=null?M[i]:{};
+  $('dlgT').textContent=i!=null?'Editar modelo':'Novo modelo';
+  $('dlgB').innerHTML=`<div class="grid">${campoHtml(['nome','Nome (modelo + lugares)','c4'],m.nome)}${campoHtml(['preco','Preço de tabela','c2'],m.preco?fmtIn(m.preco):'')}${campoHtml(['gar_veic','Garantia do veículo (meses)','c3','number'],m.gar_veic)}${campoHtml(['gar_bat','Garantia da bateria (meses)','c3','number'],m.gar_bat)}${campoHtml(['desc','Descrição / ficha técnica','c6','textarea'],m.desc)}</div>`;
+  $('dlgF').innerHTML=`${i!=null?`<button class="btn btn-x" style="margin-right:auto" onclick="excluirModelo(${i})">Excluir</button>`:''}<button class="btn" onclick="dlg.close()">Cancelar</button><button class="btn btn-p" onclick="salvarModelo(${i!=null?i:'null'})">Salvar</button>`; dlg.showModal(); }
+function telaLocais(){ const L=db.locais(), E=db.estoque();
+  $('acoes').innerHTML=`<button class="btn btn-p" onclick="novoLocal()">+ Novo local</button>`;
+  return `<h1>Locais de estoque</h1><p class="sub">Onde os carrinhos podem estar: depósito, exposição, revendas.</p><div class="card"><table class="t"><tr><th>Local</th><th class="r">Carrinhos disponíveis</th><th></th></tr>${L.map((l,i)=>`<tr><td><b>${esc(l)}</b></td><td class="r">${E.filter(c=>c.local===l&&c.status!=='vendido').length}</td><td class="r">${L.length>1?`<button class="btn btn-s btn-x" onclick="excluirLocal(${i})">Excluir</button>`:''}</td></tr>`).join('')}</table></div>`; }
+const EMP=[['eRazao','Razão social','c4'],['eCnpj','CNPJ','c2'],['eEnd','Endereço','c6'],['eTel','Telefone','c2'],['eMail','E-mail','c4'],['eBanco','Banco','c2'],['eAg','Agência','c2'],['eConta','Conta','c2'],['ePix','Chave PIX','c3'],['eFav','Favorecido','c3']];
+function telaEmpresa(){ const e=db.empresa();
+  return `<h1>Empresa e dados</h1><p class="sub">Dados que saem nos documentos e a cópia de segurança de todo o sistema.</p><div class="card" style="padding:16px"><div class="grid">${EMP.map(c=>campoHtml([c[0],c[1],c[2]],e[c[0]])).join('')}</div><div style="display:flex;justify-content:flex-end;margin-top:12px"><button class="btn btn-p" onclick="salvarEmpresa()">Salvar dados da empresa</button></div></div>
+    <div class="card" style="padding:16px;margin-top:12px"><b>Cópia de segurança</b><p class="sub" style="margin:4px 0 10px">Exporta tudo (estoque, histórico dos chassis, recebimentos, cadastros, fichas de venda) num arquivo; importe no outro computador ou na futura base.</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" onclick="exportar()">⤓ Exportar todos os dados</button><label class="btn" style="cursor:pointer;margin:0">⤒ Importar dados<input type="file" accept=".json" onchange="importar(this)" style="display:none"></label></div></div>`; }
+// ───────── logística: estoque por chassi, ficha do chassi, recebimento, movimentações ─────────
+const ST={disponivel:['disponível','t-disp'],reservado:['reservado','t-res'],vendido:['vendido','t-vend'],baixado:['baixado','t-red']};
+let filtroEst={q:'',st:'',loc:'',mod:''}, abaEst=ls.get('cg_abaEst','veic');
+function abasEst(){ const I=db.lista('itens'); const n=t=>I.filter(i=>i.tipo===t).length;
+  return `<div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">${[['veic','Veículos (por chassi)',db.estoque().filter(c=>c.status!=='vendido').length],['peca','Peças e partes',n('Peça / parte')],['acess','Acessórios',n('Acessório')]].map(a=>`<button class="btn ${abaEst===a[0]?'btn-p':''}" onclick="abaEst='${a[0]}';ls.set('cg_abaEst',abaEst);render()">${a[1]} · ${a[2]}</button>`).join('')}</div>`; }
+function telaEstoque(){ if(abaEst!=='veic') return telaEstItens(abaEst==='peca'?'Peça / parte':'Acessório'); return telaEstVeic(); }
+function telaEstVeic(){ const E=db.estoque(), L=db.locais();
+  $('acoes').innerHTML=`<button class="btn" onclick="abrirTela('recebimento')">+ Receber carrinhos</button>`;
+  const f=filtroEst, q=f.q.toUpperCase();
+  const R=E.filter(c=>(!f.st||c.status===f.st)&&(!f.loc||c.local===f.loc)&&(!f.mod||c.modelo===f.mod)&&(!q||(c.modelo+' '+c.cor+' '+c.lugares+' '+c.chassi+' '+(c.pedido||'')).toUpperCase().includes(q)));
+  const tot=s=>E.filter(c=>c.status===s).length, custo=E.filter(c=>c.status!=='vendido').reduce((a,c)=>a+(+c.custo||0),0);
+  const mods=[...new Set(E.map(c=>c.modelo))].sort();
+  return `<h1>Estoque</h1><p class="sub">Veículos são controlados por chassi; peças, partes e acessórios por código e quantidade, em cada local.</p>${abasEst()}
+    <div class="kpis"><div class="card kpi"><small>Disponíveis</small><b>${tot('disponivel')}</b></div><div class="card kpi"><small>Reservados</small><b>${tot('reservado')}</b></div><div class="card kpi"><small>Vendidos</small><b>${tot('vendido')}</b></div><div class="card kpi"><small>Custo em estoque</small><b>${custo?brl(custo):'—'}</b></div></div>
+    <div class="card"><div class="filtros"><input placeholder="Buscar modelo, cor, chassi ou pedido" value="${esc(f.q)}" oninput="filtroEst.q=this.value;atualEst()"><select onchange="filtroEst.st=this.value;atualEst()"><option value="">Todas as situações</option>${Object.keys(ST).map(s=>`<option value="${s}" ${f.st===s?'selected':''}>${ST[s][0]}</option>`).join('')}</select><select onchange="filtroEst.loc=this.value;atualEst()"><option value="">Todos os locais</option>${L.map(l=>`<option ${f.loc===l?'selected':''}>${esc(l)}</option>`).join('')}</select><select onchange="filtroEst.mod=this.value;atualEst()"><option value="">Todos os modelos</option>${mods.map(m=>`<option ${f.mod===m?'selected':''}>${esc(m)}</option>`).join('')}</select></div>
+    <div id="estTab">${tabEst(R)}</div></div>`; }
+function tabEst(R){ return R.length?`<table class="t"><tr><th>Chassi</th><th>Modelo</th><th>Cor</th><th>Lugares</th><th>Local</th><th>Situação</th><th>Pedido</th><th>Entrada</th></tr>${R.map(c=>`<tr class="click" onclick="fichaChassi('${c.id}')"><td><b>${esc(c.chassi)}</b></td><td>${esc(c.modelo)}</td><td>${esc(c.cor)}</td><td>${esc(c.lugares)}</td><td>${esc(c.local)}</td><td><span class="tag ${(ST[c.status]||ST.disponivel)[1]}">${(ST[c.status]||ST.disponivel)[0]}</span></td><td>${esc(c.pedido||'—')}</td><td>${c.entrada?dBR(c.entrada):'—'}</td></tr>`).join('')}</table>`:'<div class="vazio">Nenhum carrinho com esses filtros.</div>'; }
+function atualEst(){ const E=db.estoque(), f=filtroEst, q=f.q.toUpperCase(); $('estTab').innerHTML=tabEst(E.filter(c=>(!f.st||c.status===f.st)&&(!f.loc||c.local===f.loc)&&(!f.mod||c.modelo===f.mod)&&(!q||(c.modelo+' '+c.cor+' '+c.lugares+' '+c.chassi+' '+(c.pedido||'')).toUpperCase().includes(q)))); }
+function fichaChassi(id){ const E=db.estoque(), c=E.find(x=>x.id===id); if(!c) return; const fi=db.fichas().find(f=>(f.carros||[]).some(x=>x.id===c.id)), m=db.modelos().find(x=>x.nome.toUpperCase()===(c.modelo+' '+c.lugares).toUpperCase())||{};
+  const ev=[]; if(c.entrada||c.nf) ev.push([c.entrada,'Recebido',(c.nf?'NF '+c.nf:'')+(c.fornecedor?' · '+c.fornecedor:'')+(c.custo?' · custo '+brl(c.custo):'')]); else ev.push([null,'Em estoque','carga inicial do estoque']);
+  (c.hist||[]).forEach(h=>ev.push([h.em,h.ev,h.det]));
+  if(fi) ev.push([fi.salvo_em,fi.situacao==='vendida'?'Vendido':'Reservado em ficha de venda',fi.numero+' · '+(fi.cNome||'')]);
+  ev.sort((a,b)=>String(a[0]||'').localeCompare(String(b[0]||'')));
+  $('dlgT').innerHTML=`Chassi ${esc(c.chassi)}`;
+  $('dlgB').innerHTML=`<div class="ficha-cab"><b>${esc(c.modelo)} ${esc(c.cor)} ${esc(c.lugares)}</b><span class="tag ${(ST[c.status]||ST.disponivel)[1]}">${(ST[c.status]||ST.disponivel)[0]}</span><span class="sub" style="margin:0">· ${esc(c.local)}</span></div>
+    <div class="grid" style="margin-top:12px"><div class="campo c2"><label>NF de entrada</label><div>${esc(c.nf||'—')}</div></div><div class="campo c2"><label>Fornecedor</label><div>${esc(c.fornecedor||'—')}</div></div><div class="campo c2"><label>Custo</label><div>${c.custo?brl(c.custo):'—'}</div></div>
+    <div class="campo c2"><label>Preço de tabela</label><div>${m.preco?brl(m.preco):'—'}</div></div><div class="campo c2"><label>Garantia</label><div>${m.gar_veic?m.gar_veic+' meses (veículo)':'—'}${m.gar_bat?' · '+m.gar_bat+' meses (bateria)':''}</div></div><div class="campo c2"><label>Pedido</label><div>${esc(c.pedido||'—')}</div></div></div>
+    <h3 style="font-size:14px;margin:16px 0 6px">Linha do tempo</h3><div class="linha-tempo">${ev.map(e=>`<div class="ev"><i></i><div><b>${esc(e[1])}</b><small>${e[0]?new Date(e[0]).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):''}${e[2]?' · '+esc(e[2]):''}</small></div></div>`).join('')}</div>`;
+  $('dlgF').innerHTML=`${c.status!=='vendido'?`<button class="btn" style="margin-right:auto" onclick="transferir('${c.id}')">Transferir de local</button>`:''}<button class="btn" onclick="editarChassi('${c.id}')">Editar dados</button><button class="btn btn-p" onclick="dlg.close()">Fechar</button>`; dlg.showModal(); }
+function transferir(id){ const E=db.estoque(), c=E.find(x=>x.id===id), L=db.locais().filter(l=>l!==c.local);
+  $('dlgT').textContent='Transferir chassi '+c.chassi; $('dlgB').innerHTML=`<p>Local atual: <b>${esc(c.local)}</b></p><div class="grid"><div class="campo c3"><label for="f_dest">Para</label><select id="f_dest">${L.map(l=>`<option>${esc(l)}</option>`).join('')}</select></div><div class="campo c3"><label for="f_mot">Motivo</label><input id="f_mot" placeholder="ex.: exposição em feira"></div></div>`;
+  $('dlgF').innerHTML=`<button class="btn" onclick="fichaChassi('${id}')">Voltar</button><button class="btn btn-p" onclick="confTransf('${id}')">Transferir</button>`; }
+function editarChassi(id){ const E=db.estoque(), c=E.find(x=>x.id===id);
+  $('dlgT').textContent='Editar chassi '+c.chassi;
+  $('dlgB').innerHTML=`<div class="grid">${campoHtml(['modelo','Modelo','c2'],c.modelo)}${campoHtml(['cor','Cor','c2'],c.cor)}${campoHtml(['lugares','Lugares','c2'],c.lugares)}${campoHtml(['nf','NF de entrada','c2'],c.nf)}${campoHtml(['fornecedor','Fornecedor','c2'],c.fornecedor)}${campoHtml(['custo','Custo','c2'],c.custo?fmtIn(c.custo):'')}${campoHtml(['entrada','Data de entrada','c2','date'],c.entrada)}</div>`;
+  $('dlgF').innerHTML=`<button class="btn" onclick="fichaChassi('${id}')">Voltar</button><button class="btn btn-p" onclick="salvarChassi('${id}')">Salvar</button>`; }
+// recebimento: uma NF de entrada com vários chassis
+function telaRecebimento(){ const R=db.lista('recebimentos');
+  $('acoes').innerHTML=`<button class="btn btn-p" onclick="novoReceb()">+ Novo recebimento</button>`;
+  return `<h1>Recebimento</h1><p class="sub">Cada NF de entrada (compra ou importação) dá entrada nos carrinhos por chassi e nas peças e acessórios por quantidade, com custo e local.</p><div class="card">${R.length?`<table class="t"><tr><th>Data</th><th>NF</th><th>Fornecedor</th><th>Origem</th><th class="r">Carrinhos</th><th class="r">Peças e acessórios</th><th class="r">Custo total</th></tr>${R.map(r=>`<tr class="click" onclick="verReceb('${r.id}')"><td>${dBR(r.data)}</td><td><b>${esc(r.nf)}</b></td><td>${esc(r.fornecedor||'—')}</td><td>${esc(r.origem||'—')}</td><td class="r">${r.itens.length}</td><td class="r">${(r.pecas||[]).reduce((a,p)=>a+p.qtd,0)}</td><td class="r">${brl(r.itens.reduce((a,i)=>a+(+i.custo||0),0)+(r.pecas||[]).reduce((a,p)=>a+p.qtd*(+p.custo||0),0))}</td></tr>`).join('')}</table>`:'<div class="vazio">Nenhum recebimento ainda. Os 12 carrinhos atuais entraram pela carga inicial do estoque.</div>'}</div>`; }
+function novoReceb(){ const F=db.lista('fornecedores'), M=db.modelos(), L=db.locais();
+  $('dlgT').textContent='Novo recebimento';
+  $('dlgB').innerHTML=`<div class="grid"><div class="campo c2"><label for="f_nf">NF de entrada</label><input id="f_nf"></div><div class="campo c2"><label for="f_data">Data</label><input id="f_data" type="date" value="${hoje()}"></div><div class="campo c2"><label for="f_forn">Fornecedor</label><select id="f_forn"><option value="">—</option>${F.map(f=>`<option>${esc(f.nome)}</option>`).join('')}</select></div>
+    <div class="campo c2"><label for="f_orig">Origem</label><select id="f_orig"><option>Nacional</option><option>Importação</option></select></div><div class="campo c4"><label for="f_obs">Observações</label><input id="f_obs" placeholder="ex.: DI, container, frete de entrada"></div></div>
+    <h3 style="font-size:14px;margin:16px 0 6px">Veículos desta nota (por chassi)</h3><div class="itens-cab"><span>Modelo</span><span>Cor</span><span>Chassi</span><span>Custo</span><span>Local</span><span></span></div><div id="recItens"></div><button class="btn btn-s" onclick="addRecItem()">+ Adicionar carrinho</button>
+    <h3 style="font-size:14px;margin:18px 0 6px">Peças, partes e acessórios desta nota</h3><div class="itens-cab" style="grid-template-columns:2fr .7fr 1fr 1fr 36px"><span>Item</span><span>Qtd</span><span>Custo unit.</span><span>Local</span><span></span></div><div id="recPecas"></div><button class="btn btn-s" onclick="addRecPeca()">+ Adicionar peça ou acessório</button>`;
+  window._recM=M; window._recL=L; window._recI=db.lista('itens');
+  $('dlgF').innerHTML=`<button class="btn" onclick="dlg.close()">Cancelar</button><button class="btn btn-p" onclick="salvarReceb()">Dar entrada no estoque</button>`; dlg.showModal(); }
+function addRecItem(){ const w=document.createElement('div'); w.className='itens-rec';
+  w.innerHTML=`<select>${window._recM.map(m=>`<option>${esc(m.nome)}</option>`).join('')}</select><input placeholder="ex.: AZUL"><input placeholder="ex.: 060"><input placeholder="0,00" inputmode="decimal"><select>${window._recL.map(l=>`<option>${esc(l)}</option>`).join('')}</select><button class="btn btn-s" aria-label="Remover" onclick="this.parentNode.remove()">×</button>`; $('recItens').appendChild(w); }
+function addRecPeca(){ if(!window._recI.length){ toast('Cadastre as peças e acessórios em Cadastros › Peças e acessórios'); return; } const w=document.createElement('div'); w.className='itens-rec'; w.style.gridTemplateColumns='2fr .7fr 1fr 1fr 36px';
+  w.innerHTML=`<select>${window._recI.map(i=>`<option value="${i.id}">${esc((i.codigo?i.codigo+' · ':'')+i.nome)} (${esc(i.tipo==='Acessório'?'acessório':'peça')})</option>`).join('')}</select><input type="number" min="1" value="1"><input placeholder="0,00" inputmode="decimal"><select>${window._recL.map(l=>`<option>${esc(l)}</option>`).join('')}</select><button class="btn btn-s" aria-label="Remover" onclick="this.parentNode.remove()">×</button>`; $('recPecas').appendChild(w); }
+function verReceb(id){ const r=db.lista('recebimentos').find(x=>x.id===id); if(!r) return;
+  $('dlgT').textContent='Recebimento · NF '+r.nf; $('dlgB').innerHTML=`<p class="sub">${dBR(r.data)} · ${esc(r.fornecedor||'sem fornecedor')} · ${esc(r.origem||'')}${r.obs?' · '+esc(r.obs):''}</p><table class="t"><tr><th>Chassi</th><th>Modelo</th><th>Cor</th><th>Local</th><th class="r">Custo</th></tr>${r.itens.map(i=>`<tr class="click" onclick="fichaChassi('${i.id}')"><td><b>${esc(i.chassi)}</b></td><td>${esc(i.modelo)}</td><td>${esc(i.cor)}</td><td>${esc(i.local)}</td><td class="r">${brl(i.custo)}</td></tr>`).join('')}</table>${(r.pecas||[]).length?`<h3 style="font-size:14px;margin:14px 0 6px">Peças e acessórios</h3><table class="t"><tr><th>Código</th><th>Descrição</th><th>Tipo</th><th>Local</th><th class="r">Qtd</th><th class="r">Custo unit.</th></tr>${r.pecas.map(p=>`<tr class="click" onclick="fichaItem('${p.item}')"><td><b>${esc(p.codigo||'—')}</b></td><td>${esc(p.nome)}</td><td>${esc(p.tipo)}</td><td>${esc(p.local)}</td><td class="r">${p.qtd}</td><td class="r">${brl(p.custo)}</td></tr>`).join('')}</table>`:''}`;
+  $('dlgF').innerHTML=`<button class="btn btn-p" onclick="dlg.close()">Fechar</button>`; dlg.showModal(); }
+// ── peças/partes e acessórios: saldo por código e local ──
+
+let filtroIt='';
+function telaEstItens(tipo){ const I=db.lista('itens').filter(i=>i.tipo===tipo), L=db.locais();
+  $('acoes').innerHTML=`<button class="btn" onclick="abrirTela('recebimento')">+ Receber itens</button><button class="btn" onclick="mod='cad';abrirTela('itens')">Cadastrar ${tipo==='Acessório'?'acessório':'peça'}</button>`;
+  const valor=I.reduce((a,i)=>a+saldoItem(i.id)*num(i.custo),0), abaixo=I.filter(i=>+i.minimo>0&&saldoItem(i.id)<+i.minimo).length;
+  return `<h1>Estoque</h1><p class="sub">Veículos são controlados por chassi; peças, partes e acessórios por código e quantidade, em cada local.</p>${abasEst()}
+    <div class="kpis"><div class="card kpi"><small>Itens cadastrados</small><b>${I.length}</b></div><div class="card kpi"><small>Unidades em estoque</small><b>${I.reduce((a,i)=>a+saldoItem(i.id),0).toLocaleString('pt-BR')}</b></div><div class="card kpi"><small>Valor em estoque (custo)</small><b>${valor?brl(valor):'—'}</b></div><div class="card kpi"><small>Abaixo do mínimo</small><b style="color:${abaixo?'var(--red)':'inherit'}">${abaixo}</b></div></div>
+    <div class="card"><div class="filtros"><input placeholder="Buscar código ou descrição" value="${esc(filtroIt)}" oninput="filtroIt=this.value;document.getElementById('itTab').innerHTML=tabIt('${tipo}')"></div><div id="itTab">${tabIt(tipo)}</div></div>`; }
+function tabIt(tipo){ const L=db.locais(), q=filtroIt.toUpperCase(), I=db.lista('itens').filter(i=>i.tipo===tipo&&(!q||(i.codigo+' '+i.nome).toUpperCase().includes(q)));
+  if(!I.length) return `<div class="vazio">Nenhum${tipo==='Acessório'?' acessório':'a peça'} cadastrad${tipo==='Acessório'?'o':'a'}. Cadastre em Cadastros › Peças e acessórios.</div>`;
+  return `<table class="t"><tr><th>Código</th><th>Descrição</th><th>Un.</th>${L.map(l=>`<th class="r">${esc(l)}</th>`).join('')}<th class="r">Total</th><th class="r">Mínimo</th><th class="r">Custo</th></tr>${I.map(i=>{ const t=saldoItem(i.id), baixo=+i.minimo>0&&t<+i.minimo; return `<tr class="click" onclick="fichaItem('${i.id}')"><td><b>${esc(i.codigo||'—')}</b></td><td>${esc(i.nome)}</td><td>${esc(i.un||'UN')}</td>${L.map(l=>`<td class="r">${saldoItem(i.id,l)||'—'}</td>`).join('')}<td class="r"><b>${t}</b></td><td class="r">${i.minimo?(baixo?'<span class="tag t-red">'+i.minimo+'</span>':i.minimo):'—'}</td><td class="r">${num(i.custo)?brl(num(i.custo)):'—'}</td></tr>`; }).join('')}</table>`; }
+function fichaItem(id){ const i=db.lista('itens').find(x=>x.id===id); if(!i) return; const L=db.locais(), M=db.lista('movimentos').filter(m=>m.item===id).slice(0,30);
+  $('dlgT').textContent=(i.codigo?i.codigo+' · ':'')+i.nome;
+  $('dlgB').innerHTML=`<p class="sub">${esc(i.tipo)} · ${esc(i.un||'UN')}${i.compat?' · compatível com '+esc(i.compat):''}</p>
+    <div class="kpis">${L.map(l=>`<div class="card kpi"><small>${esc(l)}</small><b>${saldoItem(id,l)}</b></div>`).join('')}<div class="card kpi"><small>Total</small><b>${saldoItem(id)}</b></div></div>
+    <h3 style="font-size:14px;margin:6px 0">Movimentações</h3>${M.length?`<table class="t"><tr><th>Data</th><th>Tipo</th><th>De</th><th>Para</th><th class="r">Qtd</th><th>Obs.</th></tr>${M.map(m=>`<tr><td>${new Date(m.em).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</td><td>${esc(m.tipo)}</td><td>${esc(m.de)}</td><td>${esc(m.para)}</td><td class="r">${m.qtd}</td><td>${esc(m.obs||'')}</td></tr>`).join('')}</table>`:'<div class="vazio">Sem movimentações.</div>'}`;
+  $('dlgF').innerHTML=`<button class="btn" style="margin-right:auto" onclick="ajusteItem('${id}')">Ajustar saldo</button><button class="btn" onclick="transfItem('${id}')">Transferir</button><button class="btn btn-p" onclick="dlg.close()">Fechar</button>`; dlg.showModal(); }
+function ajusteItem(id){ const i=db.lista('itens').find(x=>x.id===id), L=db.locais();
+  $('dlgT').textContent='Ajustar saldo · '+i.nome;
+  $('dlgB').innerHTML=`<div class="grid"><div class="campo c2"><label for="f_loc">Local</label><select id="f_loc">${L.map(l=>`<option>${esc(l)}</option>`).join('')}</select></div><div class="campo c2"><label for="f_tp">Tipo</label><select id="f_tp"><option value="1">Entrada</option><option value="-1">Saída</option></select></div><div class="campo c2"><label for="f_q">Quantidade</label><input id="f_q" type="number" min="1" value="1"></div><div class="campo c6"><label for="f_mot">Motivo</label><input id="f_mot" placeholder="ex.: inventário, uso em garantia, avaria"></div></div>`;
+  $('dlgF').innerHTML=`<button class="btn" onclick="fichaItem('${id}')">Voltar</button><button class="btn btn-p" onclick="confAjuste('${id}')">Lançar</button>`; }
+function transfItem(id){ const i=db.lista('itens').find(x=>x.id===id), L=db.locais();
+  $('dlgT').textContent='Transferir · '+i.nome;
+  $('dlgB').innerHTML=`<div class="grid"><div class="campo c2"><label for="f_de">De</label><select id="f_de">${L.map(l=>`<option>${esc(l)}</option>`).join('')}</select></div><div class="campo c2"><label for="f_para">Para</label><select id="f_para">${L.map((l,k)=>`<option ${k===1?'selected':''}>${esc(l)}</option>`).join('')}</select></div><div class="campo c2"><label for="f_q">Quantidade</label><input id="f_q" type="number" min="1" value="1"></div></div>`;
+  $('dlgF').innerHTML=`<button class="btn" onclick="fichaItem('${id}')">Voltar</button><button class="btn btn-p" onclick="confTransfItem('${id}')">Transferir</button>`; }
+function telaMovimentos(){ const M=db.lista('movimentos');
+  return `<h1>Movimentações</h1><p class="sub">Entradas e transferências de local, da mais recente para a mais antiga.</p><div class="card">${M.length?`<table class="t"><tr><th>Data</th><th>Tipo</th><th>Chassi / código</th><th>Item</th><th>De</th><th>Para</th><th class="r">Qtd</th><th>Observação</th></tr>${M.map(m=>`<tr><td>${new Date(m.em).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</td><td>${esc(m.tipo)}</td><td><b>${esc(m.chassi)}</b></td><td>${esc(m.modelo)}</td><td>${esc(m.de)}</td><td>${esc(m.para)}</td><td class="r">${m.qtd!=null?m.qtd:1}</td><td>${esc(m.obs||'')}</td></tr>`).join('')}</table>`:'<div class="vazio">Nenhuma movimentação registrada ainda.</div>'}</div>`; }
+
+// ═════════ BANCO (Supabase próprio) · cache em memória + gravação direta no banco ═════════
+const APP_VERSION='v0.1.0';
+const SB_URL='https://hmznfanyotwqqonjdxth.supabase.co', SB_KEY='sb_publishable_deHWae2ysLOwSQFwSfTV7Q_0irXh_9x';
+const sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
+let EMP_ID=null, USR=null, C={empresa:{},locais:[],modelos:[],clientes:[],fornecedores:[],transportadores:[],vendedores:[],itens:[],veiculos:[],eventos:[],recebimentos:[],receb_itens:[],saldos:[],movimentos:[],vendas:[]};
+// campos da tela ↔ colunas do banco
+const MAPA={
+  clientes:{nome:'nome',doc:'documento',tel:'telefone',email:'email',end:'endereco',cidade:'cidade_uf',obs:'obs'},
+  fornecedores:{nome:'nome',doc:'documento',origem:'origem',contato:'contato',tel:'telefone',email:'email',pais:'pais_cidade',obs:'obs'},
+  transportadores:{nome:'nome',doc:'documento',tel:'telefone',email:'email',pix:'pix',obs:'obs'},
+  vendedores:{nome:'nome',doc:'documento',tipo:'tipo',com:'comissao_pct',pix:'pix',tel:'telefone',email:'email'},
+  itens:{codigo:'codigo',nome:'descricao',tipo:'tipo',un:'unidade',custo:'custo_unitario',preco:'preco_venda',minimo:'estoque_minimo',compat:'modelos_compativeis',obs:'obs'}
+};
+const TIPO_IT={peca:'Peça / parte',acessorio:'Acessório'}, TIPO_IT_DB={'Peça / parte':'peca','Acessório':'acessorio'};
+const NUMS=new Set(['comissao_pct','custo_unitario','preco_venda','estoque_minimo']);
+function paraTela(k,r){ const m=MAPA[k], o={id:r.id}; Object.keys(m).forEach(u=>{ let v=r[m[u]]; if(k==='itens'&&u==='tipo') v=TIPO_IT[v]||v; if(NUMS.has(m[u])&&v!=null) v=(k==='itens'&&(u==='custo'||u==='preco'))?fmtIn(v):String(+v); o[u]=v==null?'':v; }); return o; }
+function paraBanco(k,o){ const m=MAPA[k], r={}; Object.keys(m).forEach(u=>{ if(o[u]===undefined) return; let v=o[u]; if(k==='itens'&&u==='tipo') v=TIPO_IT_DB[v]||v; if(NUMS.has(m[u])) v=num(v); r[m[u]]=(v===''?null:v); }); return r; }
+async function q(p){ const {data,error}=await p; if(error) throw new Error(error.message); return data; }
+async function carregar(){
+  const T=['locais','modelos','clientes','fornecedores','transportadores','vendedores','itens','veiculos','recebimentos','saldos'];
+  const R=await Promise.all(T.map(t=>q(sb.from(t).select('*').eq('empresa_id',EMP_ID).limit(10000))));
+  T.forEach((t,i)=>C[t]=R[i]||[]);
+  C.receb_itens=await q(sb.from('recebimento_itens').select('*').eq('empresa_id',EMP_ID).limit(20000))||[];
+  C.eventos=await q(sb.from('veiculo_eventos').select('*').eq('empresa_id',EMP_ID).order('em').limit(20000))||[];
+  C.movimentos=await q(sb.from('movimentos').select('*').eq('empresa_id',EMP_ID).order('em',{ascending:false}).limit(3000))||[];
+  try{ C.vendas=await q(sb.from('vendas').select('id,numero,situacao,cliente_id').eq('empresa_id',EMP_ID).limit(5000))||[]; }catch(_e){ C.vendas=[]; }
+  C.empresa=(await q(sb.from('empresas').select('*').eq('id',EMP_ID)))[0]||{};
+  C.locais.sort((a,b)=>a.nome.localeCompare(b.nome)); C.modelos.sort((a,b)=>a.nome.localeCompare(b.nome));
+}
+const nomeLocal=id=>(C.locais.find(l=>l.id===id)||{}).nome||'—', idLocal=n=>(C.locais.find(l=>l.nome===n)||{}).id||null;
+const modeloDe=id=>C.modelos.find(m=>m.id===id)||{};
+const db={
+  estoque(){ return C.veiculos.map(v=>{ const m=modeloDe(v.modelo_id), r=C.recebimentos.find(x=>x.id===v.recebimento_id)||{}, f=C.fornecedores.find(x=>x.id===r.fornecedor_id)||{}, vd=C.vendas.find(x=>x.id===v.venda_id)||{};
+      return {id:v.id,modelo:m.familia||String(m.nome||'').split(' ').slice(0,-1).join(' '),lugares:m.lugares||String(m.nome||'').split(' ').pop(),modelo_id:v.modelo_id,cor:v.cor||'',chassi:v.chassi,local:nomeLocal(v.local_id),status:v.status,pedido:vd.numero||null,nf:r.nf||'',entrada:v.data_entrada,fornecedor:f.nome||'',custo:+v.custo||0,
+        hist:C.eventos.filter(e=>e.veiculo_id===v.id).map(e=>({em:e.em,ev:e.evento,det:e.detalhe||''}))}; }).sort((a,b)=>(a.modelo+a.chassi).localeCompare(b.modelo+b.chassi)); },
+  modelos(){ return C.modelos.map(m=>({id:m.id,nome:m.nome,preco:+m.preco_tabela||0,gar_veic:m.garantia_veiculo_meses||0,gar_bat:m.garantia_bateria_meses||0,desc:m.descricao||''})); },
+  empresa(){ const e=C.empresa; return {eRazao:e.razao_social||'',eCnpj:e.cnpj||'',eEnd:e.endereco||'',eTel:e.telefone||'',eMail:e.email||'',eBanco:e.banco||'',eAg:e.agencia||'',eConta:e.conta||'',ePix:e.pix||'',eFav:e.favorecido||''}; },
+  fichas(){ return []; },
+  locais(){ return C.locais.filter(l=>l.ativo!==false).map(l=>l.nome); },
+  lista(k){
+    if(MAPA[k]) return C[k].map(r=>paraTela(k,r)).sort((a,b)=>String(a.nome).localeCompare(String(b.nome)));
+    if(k==='recebimentos') return C.recebimentos.slice().sort((a,b)=>String(b.data).localeCompare(String(a.data))).map(r=>{ const f=C.fornecedores.find(x=>x.id===r.fornecedor_id)||{}, I=C.receb_itens.filter(i=>i.recebimento_id===r.id);
+        return {id:r.id,nf:r.nf,data:r.data,fornecedor:f.nome||'',origem:r.origem,obs:r.obs||'',
+          itens:I.filter(i=>i.veiculo_id).map(i=>{ const v=C.veiculos.find(x=>x.id===i.veiculo_id)||{}, m=modeloDe(v.modelo_id); return {id:i.veiculo_id,chassi:v.chassi,modelo:m.nome||'',cor:v.cor||'',custo:+i.custo_unitario||0,local:nomeLocal(i.local_id)}; }),
+          pecas:I.filter(i=>i.item_id).map(i=>{ const it=C.itens.find(x=>x.id===i.item_id)||{}; return {item:i.item_id,codigo:it.codigo,nome:it.descricao,tipo:TIPO_IT[it.tipo]||it.tipo,qtd:+i.quantidade,custo:+i.custo_unitario||0,local:nomeLocal(i.local_id)}; })}; });
+    if(k==='movimentos') return C.movimentos.map(m=>{ const v=m.veiculo_id?C.veiculos.find(x=>x.id===m.veiculo_id)||{}:null, it=m.item_id?C.itens.find(x=>x.id===m.item_id)||{}:null;
+        const TP={entrada:'Entrada',saida:'Saída',transferencia:'Transferência',ajuste_entrada:'Ajuste de entrada',ajuste_saida:'Ajuste de saída',venda:'Venda',devolucao:'Devolução',garantia:'Garantia'};
+        return {id:m.id,em:m.em,item:m.item_id,tipo:TP[m.tipo]||m.tipo,chassi:v?v.chassi:(it.codigo||''),modelo:v?((modeloDe(v.modelo_id).nome||'')+' '+(v.cor||'')):it.descricao,
+          de:m.local_origem_id?nomeLocal(m.local_origem_id):(m.referencia||'—'),para:m.local_destino_id?nomeLocal(m.local_destino_id):(m.referencia||'—'),qtd:m.item_id?((m.tipo==='ajuste_saida'||m.tipo==='saida')?-m.quantidade:+m.quantidade):1,obs:m.motivo||''}; });
+    return [];
+  }
+};
+function saldoItem(id,loc){ const lid=loc?idLocal(loc):null; return C.saldos.filter(s=>s.item_id===id&&(!lid||s.local_id===lid)).reduce((a,s)=>a+(+s.quantidade||0),0); }
+function evento(){}   // a linha do tempo agora é gravada no banco (gatilhos + eventos explícitos)
+async function exec(fn,ok){ try{ await fn(); await carregar(); if(ok) toast(ok); render(); return true; }catch(e){ toast('Não foi possível: '+(e.message||e)); return false; } }
+const ins=(t,o)=>q(sb.from(t).insert(Object.assign({empresa_id:EMP_ID},o)).select());
+
+// ───────── gravações (substituem as do armazenamento local) ─────────
+function salvarCad(k,id){ const Cd=CAD[k], o={}; Cd.campos.forEach(c=>o[c[0]]=$('f_'+c[0]).value.trim()); if(!o.nome){ toast('Informe o nome'); return; }
+  const r=paraBanco(k,o); dlg.close(); exec(()=>id?q(sb.from(k).update(r).eq('id',id)):ins(k,r),'Salvo'); }
+function excluirCad(k,id){ if(!confirm('Excluir este cadastro?')) return; dlg.close(); exec(()=>q(sb.from(k).delete().eq('id',id)),'Excluído'); }
+function salvarModelo(i){ const M=db.modelos(), nome=$('f_nome').value.trim().toUpperCase(); if(!nome){ toast('Informe o nome do modelo'); return; }
+  const p=nome.split(' '), r={nome,familia:p.length>1?p.slice(0,-1).join(' '):nome,lugares:p.length>1?p[p.length-1]:null,preco_tabela:num($('f_preco').value),garantia_veiculo_meses:parseInt($('f_gar_veic').value||'0',10)||0,garantia_bateria_meses:parseInt($('f_gar_bat').value||'0',10)||0,descricao:$('f_desc').value.trim()||null};
+  dlg.close(); exec(()=>i!=null?q(sb.from('modelos').update(r).eq('id',M[i].id)):ins('modelos',r),'Modelo salvo'); }
+function excluirModelo(i){ if(!confirm('Excluir este modelo?')) return; const M=db.modelos(); dlg.close(); exec(()=>q(sb.from('modelos').delete().eq('id',M[i].id)),'Modelo excluído'); }
+function novoLocal(){ const n=prompt('Nome do novo local (ex.: Revenda Campinas)'); if(!n||!n.trim()) return; exec(()=>ins('locais',{nome:n.trim(),tipo:/expos/i.test(n)?'exposicao':/revenda/i.test(n)?'revenda':'deposito'}),'Local criado'); }
+function excluirLocal(i){ const L=db.locais(); if(db.estoque().some(c=>c.local===L[i]&&c.status!=='vendido')||C.saldos.some(s=>s.local_id===idLocal(L[i])&&+s.quantidade>0)){ toast('Há estoque neste local: transfira antes de excluir'); return; }
+  exec(()=>q(sb.from('locais').update({ativo:false}).eq('id',idLocal(L[i]))),'Local desativado'); }
+function salvarEmpresa(){ const v=k=>$('f_'+k).value.trim()||null;
+  exec(()=>q(sb.from('empresas').update({razao_social:v('eRazao')||'Empresa',cnpj:v('eCnpj'),endereco:v('eEnd'),telefone:v('eTel'),email:v('eMail'),banco:v('eBanco'),agencia:v('eAg'),conta:v('eConta'),pix:v('ePix'),favorecido:v('eFav')}).eq('id',EMP_ID)),'Dados da empresa salvos'); }
+function confTransf(id){ const c=db.estoque().find(x=>x.id===id), d=$('f_dest').value, mot=$('f_mot').value.trim(); if(!d) return;
+  exec(async()=>{ await q(sb.from('veiculos').update({local_id:idLocal(d)}).eq('id',id)); await ins('movimentos',{tipo:'transferencia',veiculo_id:id,quantidade:1,local_origem_id:idLocal(c.local),local_destino_id:idLocal(d),motivo:mot||null,feito_por:USR.id}); },'Chassi '+c.chassi+' transferido para '+d).then(()=>fichaChassi(id)); }
+function salvarChassi(id){ const v=db.estoque().find(x=>x.id===id); const modNome=($('f_modelo').value.trim()+' '+$('f_lugares').value.trim()).toUpperCase(), m=C.modelos.find(x=>x.nome.toUpperCase()===modNome);
+  if(!m){ toast('Modelo '+modNome+' não existe em Modelos e preços'); return; }
+  exec(async()=>{ await q(sb.from('veiculos').update({modelo_id:m.id,cor:$('f_cor').value.trim().toUpperCase(),custo:num($('f_custo').value),data_entrada:$('f_entrada').value||null}).eq('id',id)); await ins('veiculo_eventos',{veiculo_id:id,evento:'Dados alterados',feito_por:USR.id}); },'Chassi atualizado').then(()=>fichaChassi(id)); }
+function salvarReceb(){ const nf=$('f_nf').value.trim(); if(!nf){ toast('Informe a NF de entrada'); return; }
+  const pecas=[...document.querySelectorAll('#recPecas .itens-rec')].map(l=>({item:l.children[0].value,qtd:parseInt(l.children[1].value||'0',10),custo:num(l.children[2].value),local:l.children[3].value})).filter(x=>x.qtd>0);
+  const linhas=[...document.querySelectorAll('#recItens .itens-rec')].map(l=>({modeloNome:l.children[0].value,cor:l.children[1].value.trim().toUpperCase(),chassi:l.children[2].value.trim().toUpperCase(),custo:num(l.children[3].value),local:l.children[4].value})).filter(x=>x.chassi);
+  if(!linhas.length&&!pecas.length){ toast('Informe ao menos um carrinho ou uma peça'); return; }
+  const dup=linhas.find(x=>C.veiculos.some(v=>v.chassi===x.chassi)); if(dup){ toast('Chassi '+dup.chassi+' já existe no estoque'); return; }
+  const forn=C.fornecedores.find(f=>f.nome===$('f_forn').value), data=$('f_data').value, orig=$('f_orig').value, obs=$('f_obs').value.trim();
+  dlg.close();
+  exec(async()=>{
+    const r=(await ins('recebimentos',{nf,data,fornecedor_id:forn?forn.id:null,origem:orig,obs:obs||null,criado_por:USR.id}))[0];
+    for(const x of linhas){ const m=C.modelos.find(mm=>mm.nome===x.modeloNome); const v=(await ins('veiculos',{modelo_id:m.id,cor:x.cor,chassi:x.chassi,local_id:idLocal(x.local),recebimento_id:r.id,data_entrada:data,custo:x.custo}))[0];
+      await ins('recebimento_itens',{recebimento_id:r.id,veiculo_id:v.id,quantidade:1,custo_unitario:x.custo,local_id:idLocal(x.local)});
+      await ins('movimentos',{tipo:'entrada',veiculo_id:v.id,quantidade:1,local_destino_id:idLocal(x.local),custo_unitario:x.custo,referencia:'NF '+nf,recebimento_id:r.id,feito_por:USR.id});
+      await ins('veiculo_eventos',{veiculo_id:v.id,evento:'Recebido',detalhe:'NF '+nf+(forn?' · '+forn.nome:'')+' · entrada em '+x.local,referencia:'NF '+nf,feito_por:USR.id}); }
+    for(const x of pecas){ const it=C.itens.find(i=>i.id===x.item); if(!it) continue; const saldoAnt=saldoItem(it.id), ca=+it.custo_unitario||0;
+      if(x.custo) await q(sb.from('itens').update({custo_unitario:(saldoAnt>0&&ca)?((saldoAnt*ca+x.qtd*x.custo)/(saldoAnt+x.qtd)):x.custo}).eq('id',it.id));
+      await ins('recebimento_itens',{recebimento_id:r.id,item_id:it.id,quantidade:x.qtd,custo_unitario:x.custo,local_id:idLocal(x.local)});
+      await ins('movimentos',{tipo:'entrada',item_id:it.id,quantidade:x.qtd,local_destino_id:idLocal(x.local),custo_unitario:x.custo,referencia:'NF '+nf,recebimento_id:r.id,feito_por:USR.id}); }
+  },(linhas.length?linhas.length+' carrinho(s)':'')+(linhas.length&&pecas.length?' e ':'')+(pecas.length?pecas.length+' item(ns)':'')+' recebido(s)'); }
+function confAjuste(id){ const loc=$('f_loc').value, sg=+$('f_tp').value, qt=parseInt($('f_q').value||'0',10), mot=$('f_mot').value.trim(); if(!(qt>0)){ toast('Informe a quantidade'); return; } if(!mot){ toast('Informe o motivo'); return; }
+  if(sg<0&&saldoItem(id,loc)<qt){ toast('Saldo insuficiente em '+loc); return; }
+  exec(()=>ins('movimentos',{tipo:sg>0?'ajuste_entrada':'ajuste_saida',item_id:id,quantidade:qt,local_origem_id:sg<0?idLocal(loc):null,local_destino_id:sg>0?idLocal(loc):null,motivo:mot,feito_por:USR.id}),'Saldo ajustado').then(()=>fichaItem(id)); }
+function confTransfItem(id){ const de=$('f_de').value, para=$('f_para').value, qt=parseInt($('f_q').value||'0',10); if(de===para||!(qt>0)) return; if(saldoItem(id,de)<qt){ toast('Saldo insuficiente em '+de); return; }
+  exec(()=>ins('movimentos',{tipo:'transferencia',item_id:id,quantidade:qt,local_origem_id:idLocal(de),local_destino_id:idLocal(para),feito_por:USR.id}),'Transferido').then(()=>fichaItem(id)); }
+async function exportar(){ const p={app:'verus_carrinhos',versao:2,exportado_em:new Date().toISOString(),empresa_id:EMP_ID,dados:C};
+  const nome='verus_carrinhos_backup_'+hoje()+'.json', blob=new Blob([JSON.stringify(p,null,2)],{type:'application/json'});
+  const dl=(window.claude&&window.claude.use)?await window.claude.use('downloads'):null;
+  if(dl){ try{ await dl.save({filename:nome,data:blob}); toast('Backup pronto'); }catch(e){ toast(e&&e.code==='declined'?'Download cancelado':'Não foi possível baixar'); } }
+  else { const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=nome; document.body.appendChild(a); a.click(); a.remove(); toast('Backup gerado'); } }
+function importar(input){ input.value=''; toast('Com o banco ligado, os dados ficam no Supabase: a importação do navegador não é mais usada'); }
+
+// ───────── login e início ─────────
+function telaLogin(msg){ document.body.insertAdjacentHTML('beforeend',`<div id="login" style="position:fixed;inset:0;z-index:60;background:var(--bg);display:grid;place-items:center;padding:20px">
+  <form onsubmit="entrar(event)" class="card" style="width:min(380px,100%);padding:24px"><div style="font-weight:800;letter-spacing:.06em;font-size:20px">VERUS <span style="font-weight:400;color:var(--muted)">Carrinhos</span></div><p class="sub" style="margin:4px 0 16px">Entre com o seu usuário.</p>
+  <div class="campo" style="margin-bottom:10px"><label for="lgEmail">E-mail</label><input id="lgEmail" type="email" autocomplete="username" required></div>
+  <div class="campo" style="margin-bottom:14px"><label for="lgSenha">Senha</label><input id="lgSenha" type="password" autocomplete="current-password" required></div>
+  <div id="lgErr" style="color:var(--red);font-size:13px;min-height:18px;margin-bottom:8px">${esc(msg||'')}</div><button class="btn btn-p" style="width:100%;padding:10px" id="lgBtn">Entrar</button></form></div>`); }
+async function entrar(ev){ ev.preventDefault(); const b=$('lgBtn'); b.disabled=true; b.textContent='Entrando…';
+  const {error}=await sb.auth.signInWithPassword({email:$('lgEmail').value.trim(),password:$('lgSenha').value});
+  if(error){ $('lgErr').textContent='E-mail ou senha inválidos'; b.disabled=false; b.textContent='Entrar'; return; }
+  iniciar(); }
+async function sair(){ await sb.auth.signOut(); location.reload(); }
+async function iniciar(){
+  const {data:{session}}=await sb.auth.getSession(); if(!session){ if(!$('login')) telaLogin(); return; }
+  USR=session.user; const u=await q(sb.from('usuarios').select('empresa_id,nome,papel').eq('user_id',USR.id).eq('ativo',true).limit(1)).catch(()=>[]);
+  if(!u||!u.length){ await sb.auth.signOut(); const l=$('login'); if(l) l.remove(); telaLogin('Seu usuário não está liberado em nenhuma empresa.'); return; }
+  EMP_ID=u[0].empresa_id; USR.nome=u[0].nome; USR.papel=u[0].papel;
+  $('conteudo').innerHTML='<div class="vazio">Carregando os dados…</div>';
+  try{ await carregar(); }catch(e){ $('conteudo').innerHTML='<div class="vazio">Não consegui carregar os dados: '+esc(e.message||e)+'</div>'; return; }
+  const l=$('login'); if(l) l.remove();
+  if(!document.getElementById('btnSair')) document.querySelector('.rail .esp').insertAdjacentHTML('afterend',`<button type="button" id="btnSair" onclick="sair()" aria-label="Sair"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg><span class="tip">Sair (${esc(USR.nome||USR.email)})</span></button>`);
+  if(ls.get('cg_navFechado',false)) togNav(); render();
+}
+
+const TELAS={ itens:()=>telaCad('itens'), modelos:telaModelos, clientes:()=>telaCad('clientes'), fornecedores:()=>telaCad('fornecedores'), transportadores:()=>telaCad('transportadores'), vendedores:()=>telaCad('vendedores'), locais:telaLocais, empresa:telaEmpresa,
+  estoque:telaEstoque, recebimento:telaRecebimento, movimentos:telaMovimentos };
+iniciar();
+</script>
+</body>
+</html>
