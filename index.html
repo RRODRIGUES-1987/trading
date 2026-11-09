@@ -1,4 +1,4 @@
-<!-- VERUS CARRINHOS v0.1.0 | Gerado: 2026-11-09 UTC -->
+<!-- VERUS CARRINHOS v0.1.1 | Gerado: 2026-11-09 UTC -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -27,18 +27,21 @@ button{ cursor:pointer; }
 :focus-visible{ outline:3px solid color-mix(in srgb,var(--brand) 40%,transparent); outline-offset:1px; }
 .app{ display:grid; grid-template-columns:auto minmax(0,1fr); height:100%; }
 /* trilho de ícones + painel colapsável (estilo Supabase) */
-.nav{ display:flex; height:100%; position:sticky; top:0; z-index:5; }
-.rail{ width:56px; background:var(--rail); display:flex; flex-direction:column; align-items:center; padding:10px 0; gap:4px; }
-.rail .logo{ width:36px; height:36px; border-radius:10px; background:#3a4045; color:#fff; display:grid; place-items:center; font-weight:800; font-size:15px; margin-bottom:10px; }
-.rail button{ width:40px; height:40px; border:0; border-radius:10px; background:transparent; color:var(--rail-ink); display:grid; place-items:center; position:relative; }
+.nav{ display:flex; height:100%; position:sticky; top:0; z-index:5; padding-left:56px; }
+.rail{ position:absolute; left:0; top:0; bottom:0; width:56px; background:var(--rail); display:flex; flex-direction:column; padding:10px 8px; gap:2px; overflow:hidden; transition:width .16s ease, box-shadow .16s ease; z-index:12; }
+.rail:hover{ width:216px; box-shadow:6px 0 24px rgba(0,0,0,.28); }
+.rail .logo{ display:flex; align-items:center; gap:10px; height:36px; margin:0 0 10px 2px; color:#fff; white-space:nowrap; }
+.rail .logo i{ flex:0 0 36px; width:36px; height:36px; border-radius:10px; background:#3a4045; display:grid; place-items:center; font-style:normal; font-weight:800; font-size:15px; }
+.rail .logo span{ font-weight:800; letter-spacing:.06em; font-size:14px; } .rail .logo span em{ font-style:normal; font-weight:400; opacity:.6; }
+.rail button{ height:38px; border:0; border-radius:8px; background:transparent; color:var(--rail-ink); display:flex; align-items:center; gap:12px; padding:0 10px; white-space:nowrap; text-align:left; font-size:13.5px; }
 .rail button:hover{ background:#2f3539; color:var(--rail-hi); }
 .rail button.on{ background:#3a4045; color:var(--rail-hi); }
-.rail button svg{ width:20px; height:20px; }
-.rail button .tip{ position:absolute; left:48px; top:50%; transform:translateY(-50%); background:#0f1112; color:#fff; font-size:12px; padding:4px 8px; border-radius:6px; white-space:nowrap; pointer-events:none; opacity:0; transition:opacity .12s; }
-.nav.fechado .rail button:hover .tip{ opacity:1; }
+.rail button svg{ flex:0 0 20px; width:20px; height:20px; }
+.rail button .lbl{ opacity:0; transition:opacity .12s; } .rail:hover button .lbl{ opacity:1; }
+.rail .sep{ height:1px; background:#30363a; margin:6px 4px; }
 .rail .esp{ flex:1; }
+.nav.sem-painel .panel{ display:none; }
 .panel{ width:220px; background:var(--panel); color:#d7dbde; padding:14px 10px; overflow:auto; transition:width .18s, padding .18s; }
-.nav.fechado .panel{ width:0; padding:14px 0; overflow:hidden; }
 .panel h3{ margin:4px 8px 10px; font-size:13px; color:#fff; letter-spacing:.01em; }
 .panel a{ display:flex; align-items:center; gap:8px; padding:7px 9px; border-radius:8px; color:#c9ced2; text-decoration:none; font-size:13.5px; cursor:pointer; white-space:nowrap; }
 .panel a:hover{ background:#353b40; color:#fff; }
@@ -103,14 +106,15 @@ dialog::backdrop{ background:rgba(10,12,13,.5); }
 <div class="app">
   <nav class="nav" id="nav" aria-label="Módulos">
     <div class="rail">
-      <div class="logo" title="VERUS Carrinhos">V</div>
-      <button type="button" data-mod="cad" onclick="abrirMod('cad')" aria-label="Cadastros"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h6M7 13h10M7 17h4"/></svg><span class="tip">Cadastros</span></button>
-      <button type="button" data-mod="log" onclick="abrirMod('log')" aria-label="Logística"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/></svg><span class="tip">Logística</span></button>
-      <button type="button" data-mod="fin" onclick="abrirMod('fin')" aria-label="Financeiro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="13" rx="2"/><circle cx="12" cy="12.5" r="2.5"/><path d="M6 10v5M18 10v5"/></svg><span class="tip">Financeiro</span></button>
-      <button type="button" data-mod="com" onclick="abrirMod('com')" aria-label="Comercial"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17h16l-2-7H6z"/><circle cx="8" cy="19.5" r="1.5"/><circle cx="16" cy="19.5" r="1.5"/><path d="M8 10l2-5h6"/></svg><span class="tip">Comercial</span></button>
-      <button type="button" data-mod="pos" onclick="abrirMod('pos')" aria-label="Pós-venda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg><span class="tip">Pós-venda</span></button>
+      <div class="logo"><i>V</i><span>VERUS <em>Carrinhos</em></span></div>
+      <button type="button" data-mod="home" onclick="abrirMod('home')" aria-label="Início"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg><span class="lbl">Início</span></button>
+      <div class="sep"></div>
+      <button type="button" data-mod="cad" onclick="abrirMod('cad')" aria-label="Cadastros"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h6M7 13h10M7 17h4"/></svg><span class="lbl">Cadastros</span></button>
+      <button type="button" data-mod="log" onclick="abrirMod('log')" aria-label="Logística"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/></svg><span class="lbl">Logística</span></button>
+      <button type="button" data-mod="fin" onclick="abrirMod('fin')" aria-label="Financeiro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="13" rx="2"/><circle cx="12" cy="12.5" r="2.5"/><path d="M6 10v5M18 10v5"/></svg><span class="lbl">Financeiro</span></button>
+      <button type="button" data-mod="com" onclick="abrirMod('com')" aria-label="Comercial"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17h16l-2-7H6z"/><circle cx="8" cy="19.5" r="1.5"/><circle cx="16" cy="19.5" r="1.5"/><path d="M8 10l2-5h6"/></svg><span class="lbl">Comercial</span></button>
+      <button type="button" data-mod="pos" onclick="abrirMod('pos')" aria-label="Pós-venda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg><span class="lbl">Pós-venda</span></button>
       <div class="esp"></div>
-      <button type="button" onclick="togNav()" aria-label="Recolher ou abrir o menu" id="btnTog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg><span class="tip">Abrir menu</span></button>
     </div>
     <div class="panel" id="panel"></div>
   </nav>
@@ -141,24 +145,26 @@ const EST0=[['APOLO','CINZA','4L','024','MK'],['APOLO','CINZA','4L','025','MK'],
 
 // ───────── navegação ─────────
 const MODS={
+  home:{nome:'Início',itens:[['home','Início']]},
   cad:{nome:'Cadastros',itens:[['modelos','Modelos e preços'],['itens','Peças e acessórios'],['clientes','Clientes'],['fornecedores','Fornecedores'],['transportadores','Transportadores'],['vendedores','Vendedores e comissionados'],['locais','Locais de estoque'],['empresa','Empresa e dados']]},
   log:{nome:'Logística',itens:[['estoque','Estoque'],['recebimento','Recebimento'],['movimentos','Movimentações'],['entregas','Entregas',1]]},
   fin:{nome:'Financeiro',itens:[['receber','Contas a receber',1],['pagar','Contas a pagar',1],['fluxo','Fluxo de caixa',1]]},
   com:{nome:'Comercial',itens:[['fichas','Fichas de venda',1],['painel','Painel de vendas',1]]},
   pos:{nome:'Pós-venda',itens:[['garantias','Garantias',1],['rastreio','Rastreabilidade',1]]},
 };
-let mod=ls.get('cg_mod','cad'), tela=ls.get('cg_tela','modelos');
-function abrirMod(m){ mod=m; tela=MODS[m].itens[0][0]; ls.set('cg_mod',mod); ls.set('cg_tela',tela); if($('nav').classList.contains('fechado')) togNav(true); render(); }
-function abrirTela(t){ tela=t; ls.set('cg_tela',t); render(); }
-function togNav(forcaAbrir){ const n=$('nav'); const fechar=forcaAbrir===true?false:!n.classList.contains('fechado'); n.classList.toggle('fechado',fechar); ls.set('cg_navFechado',fechar); $('btnTog').querySelector('.tip').textContent=fechar?'Abrir menu':'Recolher menu'; }
+let mod='home', tela='home';   // sempre abre no Início
+function abrirMod(m){ mod=m; tela=MODS[m].itens[0][0]; render(); }
+function abrirTela(t){ tela=t; render(); }
+function togNav(){}
 function renderNav(){
   document.querySelectorAll('.rail button[data-mod]').forEach(b=>b.classList.toggle('on',b.dataset.mod===mod));
+  $('nav').classList.toggle('sem-painel',mod==='home');
   const M=MODS[mod];
   $('panel').innerHTML=`<h3>${M.nome}</h3>`+M.itens.map(i=>`<a class="${tela===i[0]?'on':''}" onclick="abrirTela('${i[0]}')">${i[1]}${i[2]?'<span class="em">em breve</span>':''}</a>`).join('');
 }
 function render(){
   renderNav(); const M=MODS[mod], it=M.itens.find(i=>i[0]===tela)||M.itens[0]; tela=it[0];
-  $('migalha').innerHTML=`${M.nome} / <b>${it[1]}</b>`; $('acoes').innerHTML='';
+  $('migalha').innerHTML=mod==='home'?'<b>Início</b>':`${M.nome} / <b>${it[1]}</b>`; $('acoes').innerHTML='';
   const f=TELAS[tela]; $('conteudo').innerHTML=f?f():emBreve(it[1]);
 }
 function emBreve(nome){ const planos={entregas:['agenda de entregas por venda','transportador, data e janela','checklist de entrega técnica, foto e termo assinado','a data da entrega inicia a garantia'],receber:['títulos gerados pela ficha de venda (entrada, parcelas, cartão)','baixa e conciliação','vencidos e a vencer'],pagar:['comissões e fretes gerados pela venda','compras de carrinhos (recebimento)','baixa e vencimentos'],fluxo:['entradas e saídas por data','saldo projetado'],fichas:['a ficha de venda integrada, com os chassis do estoque','relatórios interno, financeiro e do cliente'],painel:['vendas por mês, modelo e vendedor','margem por venda'],garantias:['prazo por modelo (veículo e bateria)','chamados com defeito, peças e custo'],rastreio:['linha do tempo de cada chassi, do recebimento ao último chamado']};
@@ -282,7 +288,7 @@ function telaMovimentos(){ const M=db.lista('movimentos');
   return `<h1>Movimentações</h1><p class="sub">Entradas e transferências de local, da mais recente para a mais antiga.</p><div class="card">${M.length?`<table class="t"><tr><th>Data</th><th>Tipo</th><th>Chassi / código</th><th>Item</th><th>De</th><th>Para</th><th class="r">Qtd</th><th>Observação</th></tr>${M.map(m=>`<tr><td>${new Date(m.em).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</td><td>${esc(m.tipo)}</td><td><b>${esc(m.chassi)}</b></td><td>${esc(m.modelo)}</td><td>${esc(m.de)}</td><td>${esc(m.para)}</td><td class="r">${m.qtd!=null?m.qtd:1}</td><td>${esc(m.obs||'')}</td></tr>`).join('')}</table>`:'<div class="vazio">Nenhuma movimentação registrada ainda.</div>'}</div>`; }
 
 // ═════════ BANCO (Supabase próprio) · cache em memória + gravação direta no banco ═════════
-const APP_VERSION='v0.1.0';
+const APP_VERSION='v0.1.1';
 const SB_URL='https://hmznfanyotwqqonjdxth.supabase.co', SB_KEY='sb_publishable_deHWae2ysLOwSQFwSfTV7Q_0irXh_9x';
 const sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
 let EMP_ID=null, USR=null, C={empresa:{},locais:[],modelos:[],clientes:[],fornecedores:[],transportadores:[],vendedores:[],itens:[],veiculos:[],eventos:[],recebimentos:[],receb_itens:[],saldos:[],movimentos:[],vendas:[]};
@@ -405,11 +411,15 @@ async function iniciar(){
   $('conteudo').innerHTML='<div class="vazio">Carregando os dados…</div>';
   try{ await carregar(); }catch(e){ $('conteudo').innerHTML='<div class="vazio">Não consegui carregar os dados: '+esc(e.message||e)+'</div>'; return; }
   const l=$('login'); if(l) l.remove();
-  if(!document.getElementById('btnSair')) document.querySelector('.rail .esp').insertAdjacentHTML('afterend',`<button type="button" id="btnSair" onclick="sair()" aria-label="Sair"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg><span class="tip">Sair (${esc(USR.nome||USR.email)})</span></button>`);
-  if(ls.get('cg_navFechado',false)) togNav(); render();
+  if(!document.getElementById('btnSair')) document.querySelector('.rail .esp').insertAdjacentHTML('afterend',`<button type="button" id="btnSair" onclick="sair()" aria-label="Sair"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg><span class="lbl">Sair · ${esc((USR.nome||USR.email).split(' ')[0])}</span></button>`);
+  render();
 }
 
-const TELAS={ itens:()=>telaCad('itens'), modelos:telaModelos, clientes:()=>telaCad('clientes'), fornecedores:()=>telaCad('fornecedores'), transportadores:()=>telaCad('transportadores'), vendedores:()=>telaCad('vendedores'), locais:telaLocais, empresa:telaEmpresa,
+function telaHome(){ const h=new Date().getHours(), s=h<12?'Bom dia':h<18?'Boa tarde':'Boa noite';
+  return `<div style="max-width:760px;padding:40px 4px"><h1 style="font-size:26px">${s}${USR&&USR.nome?', '+esc(USR.nome.split(' ')[0]):''}.</h1>
+    <p class="sub" style="font-size:15px">${esc((C.empresa&&C.empresa.razao_social)||'VERUS Carrinhos')} · ${new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'})}</p>
+    <div class="card" style="margin-top:22px;padding:22px;border-style:dashed;color:var(--muted)">Os indicadores da gestão entram aqui: vendas, estoque, financeiro, entregas e garantias.<br>Use o menu à esquerda para abrir os módulos.</div></div>`; }
+const TELAS={ home:telaHome, itens:()=>telaCad('itens'), modelos:telaModelos, clientes:()=>telaCad('clientes'), fornecedores:()=>telaCad('fornecedores'), transportadores:()=>telaCad('transportadores'), vendedores:()=>telaCad('vendedores'), locais:telaLocais, empresa:telaEmpresa,
   estoque:telaEstoque, recebimento:telaRecebimento, movimentos:telaMovimentos };
 iniciar();
 </script>
