@@ -1,4 +1,4 @@
-<!-- VERUS CARRINHOS v0.1.4 | Gerado: 2026-11-09 UTC -->
+<!-- VERUS CARRINHOS v0.1.5 | Gerado: 2026-11-09 UTC -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -366,7 +366,7 @@ function telaMovimentos(){ const M=db.lista('movimentos');
   return `<h1>Movimentações</h1><p class="sub">Entradas e transferências de local, da mais recente para a mais antiga.</p><div class="card">${M.length?`<table class="t"><tr><th>Data</th><th>Tipo</th><th>Chassi / código</th><th>Item</th><th>De</th><th>Para</th><th class="r">Qtd</th><th>Observação</th></tr>${M.map(m=>`<tr><td>${new Date(m.em).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</td><td>${esc(m.tipo)}</td><td><b>${esc(m.chassi)}</b></td><td>${esc(m.modelo)}</td><td>${esc(m.de)}</td><td>${esc(m.para)}</td><td class="r">${m.qtd!=null?m.qtd:1}</td><td>${esc(m.obs||'')}</td></tr>`).join('')}</table>`:'<div class="vazio">Nenhuma movimentação registrada ainda.</div>'}</div>`; }
 
 // ═════════ BANCO (Supabase próprio) · cache em memória + gravação direta no banco ═════════
-const APP_VERSION='v0.1.4';
+const APP_VERSION='v0.1.5';
 const SB_URL='https://hmznfanyotwqqonjdxth.supabase.co', SB_KEY='sb_publishable_deHWae2ysLOwSQFwSfTV7Q_0irXh_9x';
 const sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
 let EMP_ID=null, USR=null, C={empresa:{},locais:[],modelos:[],clientes:[],fornecedores:[],transportadores:[],vendedores:[],itens:[],veiculos:[],eventos:[],recebimentos:[],receb_itens:[],saldos:[],movimentos:[],vendas:[],venda_veiculos:[],venda_itens:[],entregas:[]};
@@ -504,17 +504,17 @@ function telaHome(){ const h=new Date().getHours(), s=h<12?'Bom dia':h<18?'Boa t
 let FV=null, filtroFV={q:'',sit:''};
 const SIT_FV={aberta:['aberta','t-res'],vendida:['vendida','t-vend'],faturada:['faturada','t-vend'],entregue:['entregue','t-disp'],cancelada:['cancelada','t-red']};
 const PAGS=['À vista (PIX ou transferência)','Entrada + parcelas','Cartão de crédito','Financiamento bancário','Boleto'];
-const parcelado=p=>/parcelas|Cartão|Boleto/.test(p||'');
+const parcelado=p=>/parcelas|Cartão|Boleto/.test(p||''), avista=p=>/^À vista/.test(p||'');
 const nomeVeic=v=>{ const m=modeloDe(v.modelo_id); return [m.familia||String(m.nome||'').split(' ').slice(0,-1).join(' '),v.cor,m.lugares||String(m.nome||'').split(' ').pop()].filter(Boolean).join(' ')+' · chassi '+v.chassi; };
 const pessoa=(t,id)=>(C[t]||[]).find(x=>x.id===id)||{};
-function fvVazia(){ return {id:null,numero:null,situacao:'aberta',data:hoje(),cliente_id:'',vendedor_id:'',carros:[{veiculo_id:'',preco:0}],opcs:[],descVal:0,descTipo:'valor',pag:PAGS[0],entrada:0,nParc:1,venc1:'',prazo:'',garantia:'',instr:'',obs:'',
+function fvVazia(){ return {id:null,numero:null,situacao:'aberta',data:hoje(),cliente_id:'',vendedor_id:'',carros:[{veiculo_id:'',preco:0}],opcs:[],descVal:0,descTipo:'valor',pag:PAGS[0],entrada:0,entData:'',entRec:false,saldoEnt:false,nParc:1,venc1:'',prazo:'',garantia:'',instr:'',obs:'',
   com:{on:false,forma:'nf',id:'',tipo:'pct',val:0},fre:{tipo:'retira',on:false,forma:'nf',id:'',val:0,data:'',janela:'',end:''},sujo:false}; }
 function fvDoBanco(v){ const VV=C.venda_veiculos.filter(x=>x.venda_id===v.id), VI=C.venda_itens.filter(x=>x.venda_id===v.id);
   return {id:v.id,numero:v.numero,situacao:v.situacao,data:v.data,cliente_id:v.cliente_id||'',vendedor_id:v.vendedor_id||'',
     carros:VV.length?VV.map(x=>({veiculo_id:x.veiculo_id,preco:+x.preco||0})):[{veiculo_id:'',preco:0}],
     opcs:VI.map(x=>({desc:x.descricao,valor:+x.preco||0})),
     descVal:v.desconto_tipo==='pct'?(+v.desconto_informado||0):(+v.desconto||0),descTipo:v.desconto_tipo||'valor',
-    pag:v.forma_pagamento||PAGS[0],entrada:+v.entrada||0,nParc:v.parcelas||1,venc1:v.primeiro_vencimento||'',prazo:v.prazo_entrega||'',garantia:v.garantia_texto||'',instr:v.instrucoes_pagamento||'',obs:v.obs||'',
+    pag:v.forma_pagamento||PAGS[0],entrada:+v.entrada||0,entData:v.entrada_data||'',entRec:!!v.entrada_recebida,saldoEnt:!!v.saldo_na_entrega,nParc:v.parcelas||1,venc1:v.primeiro_vencimento||'',prazo:v.prazo_entrega||'',garantia:v.garantia_texto||'',instr:v.instrucoes_pagamento||'',obs:v.obs||'',
     com:{on:!!v.comissao_on,forma:v.comissao_forma||'nf',id:v.comissionado_id||'',tipo:v.comissao_tipo||'pct',val:v.comissao_tipo==='valor'?(+v.comissao_valor||0):(+v.comissao_base||0)},
     fre:(()=>{ const tp=v.entrega_tipo&&v.entrega_tipo!=='retira'?v.entrega_tipo:(v.frete_on?'frete':(v.entrega_tipo||'retira')); return {tipo:tp,on:tp==='frete',forma:v.frete_forma||'nf',id:v.transportador_id||'',val:+v.frete_valor||0,data:v.entrega_data||v.frete_previsao||'',janela:v.entrega_janela||'',end:v.entrega_endereco||''}; })(),sujo:false}; }
 function totFV(f){ const qtd=Math.max(1,f.carros.filter(c=>c.veiculo_id).length), somaC=f.carros.reduce((a,c)=>a+(+c.preco||0),0), op=f.opcs.reduce((a,o)=>a+(+o.valor||0),0);
@@ -525,6 +525,9 @@ function totFV(f){ const qtd=Math.max(1,f.carros.filter(c=>c.veiculo_id).length)
   const nf=Math.max(0,pedido-(fora?comV:0)), totComprador=pedido+(frFora?frete:0), empresa=nf-(dentro?comV:0)-(frDentro?frete:0);
   return {qtd,somaC,op,bruto,desc,produtos,frete,frDentro,frFora,pedido,comV,dentro,fora,nf,totComprador,empresa}; }
 function parcelasFV(f,t){ const ent=+f.entrada||0, np=Math.max(1,parseInt(f.nParc||1,10));
+  if(avista(f.pag)){ const L=[], saldo=Math.max(0,t.nf-ent), vs=f.saldoEnt?(f.fre.tipo!=='retira'?f.fre.data:null):(f.venc1||null);
+    if(ent>0) L.push({desc:'Entrada'+(f.entRec?' · recebida':''),venc:f.entData||f.data,valor:ent,ent:1});
+    L.push({desc:f.saldoEnt?(ent>0?'Saldo via PIX na entrega':'Pagamento via PIX na entrega'):(ent>0?'Saldo':'Pagamento à vista'),venc:vs,vtx:f.saldoEnt&&!vs?'na entrega':'',valor:saldo}); return L; }
   if(!parcelado(f.pag)) return [{desc:'Pagamento à vista',venc:f.venc1||f.data,valor:t.nf}];
   const L=[]; if(ent>0) L.push({desc:'Entrada',venc:f.data,valor:ent}); const vp=Math.max(0,t.nf-ent)/np;
   for(let i=0;i<np;i++){ let d=null; if(f.venc1){ const x=new Date(f.venc1+'T12:00:00'); x.setMonth(x.getMonth()+i); d=x.toISOString().slice(0,10); } L.push({desc:'Parcela '+(i+1)+'/'+np,venc:d,valor:vp}); } return L; }
@@ -580,11 +583,18 @@ function telaFV(){ const f=FV, bloq=f.situacao==='cancelada', st=SIT_FV[f.situac
     <section class="card fv-s"><h2>Valores e condições</h2><div class="grid">
       <div class="campo c2"><label for="fv_desc">Desconto</label><input id="fv_desc" inputmode="decimal" value="${f.descVal?(f.descTipo==='pct'?String(f.descVal).replace('.',','):fmtIn(f.descVal)):''}" placeholder="0"></div>
       <div class="campo c1x"><label for="fv_desct">Em</label><select id="fv_desct"><option value="valor" ${f.descTipo==='valor'?'selected':''}>R$</option><option value="pct" ${f.descTipo==='pct'?'selected':''}>%</option></select></div>
-      <div class="campo c3"><label for="fv_pag">Forma de pagamento</label><select id="fv_pag">${PAGS.concat(PAGS.includes(f.pag)?[]:[f.pag]).map(p=>`<option ${p===f.pag?'selected':''}>${esc(p)}</option>`).join('')}</select></div>
-      <div class="campo c2 fv-par"><label for="fv_ent">Entrada</label><input id="fv_ent" inputmode="decimal" value="${f.entrada?fmtIn(f.entrada):''}" placeholder="0,00"></div>
+      <div class="campo c3"><label for="fv_pag">Forma de pagamento</label><select id="fv_pag" onchange="lerFV();render()">${PAGS.concat(PAGS.includes(f.pag)?[]:[f.pag]).map(p=>`<option ${p===f.pag?'selected':''}>${esc(p)}</option>`).join('')}</select></div>
+      ${avista(f.pag)?'':`<div class="campo c2 fv-par"><label for="fv_ent">Entrada</label><input id="fv_ent" inputmode="decimal" value="${f.entrada?fmtIn(f.entrada):''}" placeholder="0,00"></div>`}
       <div class="campo c1x fv-par"><label for="fv_np">Parcelas</label><input id="fv_np" type="number" min="1" value="${f.nParc||1}"></div>
       <div class="campo c1x fv-par"><label>Valor parcela</label><input id="fv_vp" readonly tabindex="-1"></div>
-      <div class="campo c2"><label for="fv_v1">1º vencimento</label><input id="fv_v1" type="date" value="${esc(f.venc1)}"></div>
+      ${avista(f.pag)?`<div class="c6 fv-sub" style="margin-top:0"><label style="margin-bottom:8px">Entrada / sinal</label><div class="grid">
+        <div class="campo c2"><label for="fv_ent">Valor da entrada</label><input id="fv_ent" inputmode="decimal" value="${f.entrada?fmtIn(f.entrada):''}" placeholder="0,00"></div>
+        <div class="campo c2"><label for="fv_entd">Data da entrada</label><input id="fv_entd" type="date" value="${esc(f.entData)}"></div>
+        <div class="c2 fv-chk"><label><input type="checkbox" id="fv_entr" ${f.entRec?'checked':''}> Já recebida</label></div>
+        <div class="campo c2"><label>Saldo a pagar</label><input id="fv_saldo" readonly tabindex="-1"></div>
+        <div class="c4"><label>Saldo pago</label><span class="seg"><button type="button" class="${f.saldoEnt?'on':''}" onclick="segFV('saldo','1')">Na entrega (PIX)</button><button type="button" class="${f.saldoEnt?'':'on'}" onclick="segFV('saldo','0')">Em uma data</button></span></div>
+        ${f.saldoEnt?'':`<div class="campo c2"><label for="fv_v1">Data do saldo</label><input id="fv_v1" type="date" value="${esc(f.venc1)}"></div>`}
+        <div class="c6 dica" style="margin:0" id="fvSaldoDica"></div></div></div>`:`<div class="campo c2"><label for="fv_v1">${parcelado(f.pag)?'1º vencimento':'Data do pagamento'}</label><input id="fv_v1" type="date" value="${esc(f.venc1)}"></div>`}
       <div class="campo c3"><label for="fv_prazo">Prazo de entrega</label><input id="fv_prazo" value="${esc(f.prazo)}" placeholder="30 dias após a entrada"></div>
       <div class="campo c3"><label for="fv_gar">Garantia</label><input id="fv_gar" value="${esc(f.garantia)}" placeholder="conforme manual do fabricante"></div>
       <div class="campo c6"><label for="fv_instr">Instruções de pagamento <small style="font-weight:500;color:var(--muted)">· saem no pedido do cliente</small></label><textarea id="fv_instr" rows="2" placeholder="5x no cartão na máquina, no ato da compra">${esc(f.instr)}</textarea></div>
@@ -614,7 +624,8 @@ function lerFV(){ const f=FV; if(!f||!$('fv_cli')) return; const vAnt=f.vendedor
   document.querySelectorAll('[data-carp]').forEach(s=>f.carros[+s.dataset.carp].preco=num(s.value));
   document.querySelectorAll('[data-opd]').forEach(s=>f.opcs[+s.dataset.opd].desc=s.value);
   document.querySelectorAll('[data-opv]').forEach(s=>f.opcs[+s.dataset.opv].valor=num(s.value));
-  f.descTipo=$('fv_desct').value; f.descVal=num($('fv_desc').value); f.pag=$('fv_pag').value; f.entrada=num($('fv_ent').value); f.nParc=Math.max(1,parseInt($('fv_np').value||'1',10)); f.venc1=$('fv_v1').value;
+  f.descTipo=$('fv_desct').value; f.descVal=num($('fv_desc').value); f.pag=$('fv_pag').value; f.entrada=$('fv_ent')?num($('fv_ent').value):0; f.nParc=$('fv_np')?Math.max(1,parseInt($('fv_np').value||'1',10)):1; if($('fv_v1')) f.venc1=$('fv_v1').value;
+  if($('fv_entd')){ f.entData=$('fv_entd').value; f.entRec=$('fv_entr').checked; }
   f.prazo=$('fv_prazo').value; f.garantia=$('fv_gar').value; f.instr=$('fv_instr').value; f.obs=$('fv_obs').value;
   if($('fv_comid')){ const cAnt=f.com.id; f.com.id=$('fv_comid').value; f.com.tipo=$('fv_comt').value; f.com.val=num($('fv_comv').value);
     if(f.com.tipo==='pct'&&f.com.val>100){ f.com.tipo='valor'; $('fv_comt').value='valor'; toast('Comissão acima de 100%: considerei como valor em R$'); }
@@ -627,7 +638,7 @@ function lerFV(){ const f=FV; if(!f||!$('fv_cli')) return; const vAnt=f.vendedor
   if(f.fre.tipo!=='retira'&&!f.fre.end&&cli.id&&$('fv_eend')){ f.fre.end=[cli.endereco,cli.cidade_uf].filter(Boolean).join(' · '); $('fv_eend').value=f.fre.end; }
   f.sujo=true; $('fvSujo').textContent='· alterações não salvas'; calcFV(); }
 function segFV(g,v){ const f=FV; lerFV();
-  if(g==='com_forma') f.com.forma=v;
+  if(g==='com_forma') f.com.forma=v; if(g==='saldo') f.saldoEnt=v==='1';
   if(g==='ent'){ f.fre.tipo=v; f.fre.on=v==='frete'; if(v!=='retira'&&!f.fre.end){ const c=pessoa('clientes',f.cliente_id); f.fre.end=[c.endereco,c.cidade_uf].filter(Boolean).join(' · '); } }
   if(g==='fre_forma') f.fre.forma=v; f.sujo=true; render(); }
 function togCom(on){ const f=FV; lerFV(); f.com.on=on; if(on&&!f.com.id){ f.com.id=f.vendedor_id; const p=pessoa('vendedores',f.com.id); if(+p.comissao_pct&&!f.com.val){ f.com.tipo='pct'; f.com.val=+p.comissao_pct; } } f.sujo=true; render(); }
@@ -635,7 +646,9 @@ function addFV(k){ lerFV(); FV[k].push(k==='carros'?{veiculo_id:'',preco:0}:{des
 function remFV(k,i){ lerFV(); FV[k].splice(i,1); if(k==='carros'&&!FV.carros.length) FV.carros.push({veiculo_id:'',preco:0}); FV.sujo=true; render(); }
 function calcFV(){ const f=FV; if(!f||!$('fvTot')) return; const t=totFV(f), par=parcelado(f.pag);
   document.querySelectorAll('.fv-par').forEach(e=>e.style.display=par?'':'none');
-  $('fv_vp').value=par?fmtIn(Math.max(0,t.nf-(+f.entrada||0))/Math.max(1,f.nParc)):'';
+  if($('fv_vp')) $('fv_vp').value=par?fmtIn(Math.max(0,t.nf-(+f.entrada||0))/Math.max(1,f.nParc)):'';
+  const saldo=Math.max(0,t.nf-(+f.entrada||0));
+  if($('fv_saldo')){ $('fv_saldo').value=fmtIn(saldo); $('fvSaldoDica').textContent=f.saldoEnt?(f.fre.tipo==='retira'?'Saldo pago via PIX na retirada do veículo.':'O saldo vai junto na solicitação de entrega: a logística vê quanto receber antes de descarregar.'):'O saldo fica com vencimento na data informada.'; }
   const cs=f.carros.filter(c=>c.veiculo_id).map(c=>({nome:nomeVeic(C.veiculos.find(v=>v.id===c.veiculo_id)||{}),preco:c.preco}));
   $('fvTot').textContent=brl(t.totComprador); $('fvSub').textContent=(cs.length?cs.length+(cs.length>1?' carrinhos':' carrinho'):'carrinho a escolher')+' · '+f.pag;
   const L=[...cs.map(c=>[c.nome,c.preco])]; if(t.op) L.push(['Opcionais',t.op*t.qtd]); if(t.desc) L.push(['Desconto'+(f.descTipo==='pct'?' '+String(f.descVal).replace('.',',')+'%':''),-t.desc]);
@@ -645,7 +658,8 @@ function calcFV(){ const f=FV; if(!f||!$('fvTot')) return; const t=totFV(f), par
   $('fvLin').innerHTML=L.map(x=>`<div class="${x[2]?'nf':''}${x[1]<0?' menos':''}"><span>${esc(x[0])}</span><span>${brl(x[1])}</span></div>`).join('');
   $('fvLiq').textContent=brl(t.empresa);
   const tr=pessoa('transportadores',f.fre.id);
-  $('fvQuem').innerHTML=`<small>Como o comprador paga</small><div><span>À empresa (NF)</span><b>${brl(t.nf)}</b></div>${t.fora&&t.comV?`<div><span>Ao comissionado</span><span>${brl(t.comV)}</span></div>`:''}${t.frFora&&t.frete?`<div><span>Ao transportador</span><span>${brl(t.frete)}</span></div>`:''}`;
+  const emp=avista(f.pag)&&(+f.entrada>0||f.saldoEnt)?`${+f.entrada>0?`<div><span>Entrada${f.entData?' · '+dBR(f.entData).slice(0,5):''}${f.entRec?' <span class="tag t-disp">recebida</span>':''}</span><span>${brl(f.entrada)}</span></div>`:''}<div><span>${f.saldoEnt?'Falta na entrega (PIX)':'Saldo'+(f.venc1?' · '+dBR(f.venc1).slice(0,5):'')}</span><b>${brl(saldo)}</b></div>`:`<div><span>À empresa (NF)</span><b>${brl(t.nf)}</b></div>`;
+  $('fvQuem').innerHTML=`<small>Como o comprador paga</small>${emp}${t.fora&&t.comV?`<div><span>Ao comissionado</span><span>${brl(t.comV)}</span></div>`:''}${t.frFora&&t.frete?`<div><span>Ao transportador</span><span>${brl(t.frete)}</span></div>`:''}`;
   $('fvEnt').textContent=f.fre.tipo==='retira'?'Cliente retira':((f.fre.tipo==='frete'?'Entrega com frete':'Entrega sem cobrança')+(f.fre.data?' · '+dBR(f.fre.data):' · data a definir')+(f.fre.janela?' · '+f.fre.janela:'')+(f.fre.tipo==='cortesia'&&!f.fre.id?' · equipe própria':(tr.nome?' · '+tr.nome:'')));
   if($('fvComDica')) $('fvComDica').textContent=f.com.forma==='nf'?'A NF sai com o valor cheio e a empresa paga o comissionado. O comprador não paga nada a mais.':'A comissão sai do valor do veículo: o comprador paga o comissionado direto e a NF sai pelo valor menos a comissão. O total do comprador não muda.';
   if($('fvFrDica')) $('fvFrDica').textContent=f.fre.forma==='nf'?'O frete entra na NF: o comprador paga junto e a empresa paga o transportador.':'O frete fica fora da NF: o comprador paga o transportador direto, além do valor do veículo.'; }
@@ -654,7 +668,7 @@ function calcFV(){ const f=FV; if(!f||!$('fvTot')) return; const t=totFV(f), par
 function linhaVenda(f){ const t=totFV(f);
   return {numero:f.numero,data:f.data,cliente_id:f.cliente_id||null,vendedor_id:f.vendedor_id||null,situacao:f.situacao,
     desconto:+t.desc.toFixed(2),desconto_tipo:f.descTipo,desconto_informado:+f.descVal||0,
-    forma_pagamento:f.pag,entrada:+f.entrada||0,parcelas:parcelado(f.pag)?f.nParc:1,primeiro_vencimento:f.venc1||null,instrucoes_pagamento:f.instr||null,prazo_entrega:f.prazo||null,garantia_texto:f.garantia||null,obs:f.obs||null,
+    forma_pagamento:f.pag,entrada:+f.entrada||0,entrada_data:avista(f.pag)&&+f.entrada>0&&f.entData||null,entrada_recebida:avista(f.pag)&&+f.entrada>0&&!!f.entRec,saldo_na_entrega:avista(f.pag)&&!!f.saldoEnt,parcelas:parcelado(f.pag)?f.nParc:1,primeiro_vencimento:f.venc1||null,instrucoes_pagamento:f.instr||null,prazo_entrega:f.prazo||null,garantia_texto:f.garantia||null,obs:f.obs||null,
     comissao_on:f.com.on,comissionado_id:f.com.on&&f.com.id||null,comissao_forma:f.com.on?f.com.forma:null,comissao_tipo:f.com.on?f.com.tipo:null,comissao_base:f.com.on?(+f.com.val||0):null,comissao_valor:+t.comV.toFixed(2),
     entrega_tipo:f.fre.tipo,entrega_data:f.fre.tipo!=='retira'&&f.fre.data||null,entrega_janela:f.fre.tipo!=='retira'&&f.fre.janela||null,entrega_endereco:f.fre.tipo!=='retira'&&f.fre.end||null,
     frete_on:f.fre.on,transportador_id:f.fre.tipo!=='retira'&&f.fre.id||null,frete_forma:f.fre.on?f.fre.forma:null,frete_valor:+t.frete.toFixed(2),frete_previsao:f.fre.on&&f.fre.data||null,
@@ -706,9 +720,11 @@ function relFV(tipo){ document.querySelectorAll('.menu-rel').forEach(m=>m.classL
   const comp=`<p><b>${esc(cli.nome||'—')}</b>${cli.documento?' · '+esc(cli.documento):''}<br>${esc(cli.endereco||'')}${cli.cidade_uf?' · '+esc(cli.cidade_uf):''}<br>${esc(cli.telefone||'')}${cli.email?' · '+esc(cli.email):''}</p>`;
   const P0=parcelasFV(f,t), PP=P0.filter(x=>/^Parcela/.test(x.desc)), P=P0.filter(x=>!/^Parcela/.test(x.desc));
   if(PP.length) P.push({desc:PP.length+(PP.length>1?' parcelas':' parcela')+' de '+brl(PP[0].valor),vtxt:1});
-  const parcT=`<table>${P.map(x=>x.vtxt?`<tr><td colspan="3"><b>${x.desc}</b>${PP[0].venc?' · 1ª em '+dBR(PP[0].venc)+(PP.length>1?', mensais':''):''}</td></tr>`:`<tr><td>${x.desc}</td><td>${dBR(x.venc)}</td><td class="r">${brl(x.valor)}</td></tr>`).join('')}</table>`;
+  const parcT=`<table>${P.map(x=>x.vtxt?`<tr><td colspan="3"><b>${x.desc}</b>${PP[0].venc?' · 1ª em '+dBR(PP[0].venc)+(PP.length>1?', mensais':''):''}</td></tr>`:`<tr><td>${x.desc}</td><td>${x.vtx||dBR(x.venc)}</td><td class="r">${brl(x.valor)}</td></tr>`).join('')}</table>`;
   const entL=P0.find(x=>x.desc==='Entrada'), pagNome=String(f.pag||'').replace(/\s*\(.*\)\s*/,'');
-  const formaTxt=PP.length?(entL?('Entrada de '+brl(entL.valor)+' + '):'')+pagNome.replace(/^Entrada \+ parcelas$/,'Parcelado')+' em '+PP.length+'x de '+brl(PP[0].valor)+', totalizando '+brl(t.nf):(esc(f.pag)+' · '+brl(t.nf));
+  const entV=+f.entrada||0, saldoV=Math.max(0,t.nf-entV), avEnt=avista(f.pag)&&(entV>0||f.saldoEnt);
+  const saldoQuando=f.saldoEnt?' via PIX na entrega':(f.venc1?' em '+dBR(f.venc1):'');
+  const formaTxt=avEnt?'À vista · '+(entV>0?'entrada de '+brl(entV)+(f.entRec?' (paga em '+dBR(f.entData||f.data)+')':(f.entData?' (a pagar em '+dBR(f.entData)+')':''))+' + saldo de '+brl(saldoV)+saldoQuando:brl(saldoV)+saldoQuando):PP.length?(entL?('Entrada de '+brl(entL.valor)+' + '):'')+pagNome.replace(/^Entrada \+ parcelas$/,'Parcelado')+' em '+PP.length+'x de '+brl(PP[0].valor)+', totalizando '+brl(t.nf):(esc(f.pag)+' · '+brl(t.nf));
   const benef=(tit,p,val,quem)=>`<div class="box"><b>${tit}</b><br>${esc(p.nome||'—')}${p.documento?' · '+esc(p.documento):''}${p.pix?'<br>PIX: <b>'+esc(p.pix)+'</b>':''}<br>Valor: <b>${brl(val)}</b> · ${quem}</div>`;
   const entQuando=(f.fre.data?', previsão '+dBR(f.fre.data):'')+(f.fre.janela?', '+esc(f.fre.janela):'');
   const entTxt=f.fre.tipo==='retira'?'Retirada pelo comprador':f.fre.tipo==='frete'?'Entrega por '+esc(tr.nome||'transportador')+entQuando:'Entrega '+(tr.nome?'por '+esc(tr.nome):'pela nossa equipe')+', sem cobrança de frete'+entQuando;
@@ -733,7 +749,7 @@ function relFV(tipo){ document.querySelectorAll('.menu-rel').forEach(m=>m.classL
     const terc=(comFora&&t.comV)||(frFora&&frV);
     corpo=`<p>Olá, <b>${esc(cli.nome||'')}</b>. Confirmamos o seu pedido com os itens e as condições abaixo.</p><table><tr><th>Veículo</th><th class="r">Valor</th></tr>${carros.map(c=>lin(esc(c.nome),brl(c.preco))).join('')}${opcs.map(x=>lin('Opcional: '+esc(x.desc),brl(x.valor*qtd))).join('')}${t.desc?lin('Desconto','− '+brl(t.desc)):''}${frDentro&&frV?lin('Frete',brl(frV)):''}<tr class="tot"><td>Valor do veículo</td><td class="r">${brl(t.pedido)}</td></tr></table>
       <h3>Como pagar</h3><p>Forma de pagamento: <b>${formaTxt}</b></p>
-      <div class="kpis"><div><small>Total a pagar</small><b>${brl(t.totComprador)}</b></div><div><small>Total a pagar pelo veículo</small><b>${brl(t.nf)}</b></div>${terc?`<div><small>Total a pagar a terceiros</small><b>${brl(t.totComprador-t.nf)}</b></div>`:''}</div>
+      <div class="kpis"><div><small>Total a pagar</small><b>${brl(t.totComprador)}</b></div>${avEnt?`${entV>0?`<div><small>${f.entRec?'Já pago (entrada)':'Entrada a pagar'}</small><b>${brl(entV)}</b></div>`:''}<div><small>${f.saldoEnt?'Falta pagar na entrega':'Falta pagar'}</small><b>${brl(saldoV)}</b></div>`:`<div><small>Total a pagar pelo veículo</small><b>${brl(t.nf)}</b></div>`}${terc?`<div><small>Total a pagar a terceiros</small><b>${brl(t.totComprador-t.nf)}</b></div>`:''}</div>
       ${dados}${terc?`<h3>Pagamentos a terceiros</h3><div class="duo">${comFora&&t.comV?benef('Comissão ao representante',cm,t.comV,'pago diretamente por você'):''}${frFora&&frV?benef('Frete ao transportador',tr,frV,'pago diretamente por você'):''}</div>`:''}
       <h3>Entrega e garantia</h3><p>${entTxt}${f.prazo?' · '+esc(f.prazo):''}${f.fre.tipo!=='retira'&&f.fre.end?'<br>Endereço de entrega: '+esc(f.fre.end):''}<br>Garantia: ${esc(f.garantia||'conforme manual do fabricante')}</p>${f.obs?'<p>'+esc(f.obs)+'</p>':''}`; }
   const v=$('relView');
@@ -766,7 +782,7 @@ function tabEnt(){ const q=filtroEnt.q.toUpperCase();
       return {e,v,cli:c.nome||'—',quem:t.nome||(e.tipo==='cortesia'?'Equipe própria':'—'),ch}; })
     .filter(r=>(filtroEnt.st==='ativas'?['programada','reprogramada','em_rota'].includes(r.e.status):(!filtroEnt.st||r.e.status===filtroEnt.st))&&(!q||(r.v.numero+' '+r.cli+' '+(r.e.endereco||'')).toUpperCase().includes(q)))
     .sort((a,b)=>String(a.e.data_prevista||'9999').localeCompare(String(b.e.data_prevista||'9999')));
-  return R.length?`<table class="t"><tr><th>Data</th><th>Horário</th><th>Ficha</th><th>Cliente</th><th>Chassis</th><th>Local</th><th>Quem entrega</th><th>Tipo</th><th>Situação</th></tr>${R.map(r=>`<tr class="click" onclick="irFicha('${r.v.id}')"><td><b>${r.e.data_prevista?dBR(r.e.data_prevista):'a definir'}</b></td><td>${esc(r.e.janela||'—')}</td><td>${esc(r.v.numero||'—')}</td><td>${esc(r.cli)}</td><td>${esc(r.ch.join(', ')||'—')}</td><td>${esc(r.e.endereco||'—')}</td><td>${esc(r.quem)}</td><td>${r.e.tipo==='cortesia'?'sem cobrança':'frete'}</td><td><span class="tag ${(ST_ENT[r.e.status]||ST_ENT.programada)[1]}">${(ST_ENT[r.e.status]||ST_ENT.programada)[0]}</span></td></tr>`).join('')}</table>`
+  return R.length?`<table class="t"><tr><th>Data</th><th>Horário</th><th>Ficha</th><th>Cliente</th><th>Chassis</th><th>Local</th><th>Quem entrega</th><th>Tipo</th><th class="r">Receber na entrega</th><th>Situação</th></tr>${R.map(r=>`<tr class="click" onclick="irFicha('${r.v.id}')"><td><b>${r.e.data_prevista?dBR(r.e.data_prevista):'a definir'}</b></td><td>${esc(r.e.janela||'—')}</td><td>${esc(r.v.numero||'—')}</td><td>${esc(r.cli)}</td><td>${esc(r.ch.join(', ')||'—')}</td><td>${esc(r.e.endereco||'—')}</td><td>${esc(r.quem)}</td><td>${r.e.tipo==='cortesia'?'sem cobrança':'frete'}</td><td class="r">${r.v.saldo_na_entrega?'<b>'+brl(Math.max(0,(+r.v.valor_nf||0)-(+r.v.entrada||0)))+'</b> PIX':'—'}</td><td><span class="tag ${(ST_ENT[r.e.status]||ST_ENT.programada)[1]}">${(ST_ENT[r.e.status]||ST_ENT.programada)[0]}</span></td></tr>`).join('')}</table>`
     :'<div class="vazio">Nenhuma entrega com esses filtros. As solicitações aparecem aqui quando uma ficha de venda é salva com entrega.</div>'; }
 function irFicha(id){ mod='com'; tela='fichas'; abrirFV(id); }
 const TELAS={ home:telaHome, fichas:telaFichas, entregas:telaEntregas, itens:()=>telaCad('itens'), modelos:telaModelos, clientes:()=>telaCad('clientes'), fornecedores:()=>telaCad('fornecedores'), transportadores:()=>telaCad('transportadores'), vendedores:()=>telaCad('vendedores'), locais:telaLocais, empresa:telaEmpresa,
