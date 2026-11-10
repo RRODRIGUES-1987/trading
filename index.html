@@ -1,4 +1,4 @@
-<!-- VERUS CARRINHOS v0.1.5 | Gerado: 2026-11-09 UTC -->
+<!-- VERUS CARRINHOS v0.1.6 | Gerado: 2026-11-09 UTC -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -172,6 +172,8 @@ a.mini{ font-size:12.5px; font-weight:600; color:var(--ink2); cursor:pointer; te
 .fv-quem{ margin-top:10px; border:1px dashed var(--line); border-radius:8px; padding:8px 10px; } .fv-quem:empty{ display:none; } .fv-quem small{ display:block; color:var(--muted); font-size:12px; margin-bottom:2px; }
 .fv-quem div{ display:flex; justify-content:space-between; font-size:13px; padding:2px 0; font-variant-numeric:tabular-nums; }
 .seg{ flex-wrap:wrap; }
+#novaVer{ position:fixed; left:50%; transform:translateX(-50%); bottom:calc(16px + env(safe-area-inset-bottom,0px)); z-index:70; display:flex; gap:12px; align-items:center; background:var(--brand); color:var(--on-brand); border-radius:12px; padding:10px 12px 10px 16px; box-shadow:0 10px 30px rgba(0,0,0,.25); font-size:13.5px; max-width:calc(100vw - 24px); }
+#novaVer[hidden]{ display:none; } #novaVer .btn-p{ background:var(--surface); color:var(--ink); border-color:var(--surface); }
 </style>
 </head>
 <body>
@@ -197,6 +199,7 @@ a.mini{ font-size:12.5px; font-weight:600; color:var(--ink2); cursor:pointer; te
 </div>
 <dialog id="dlg"><div class="dh" id="dlgT"></div><div class="db" id="dlgB"></div><div class="df" id="dlgF"></div></dialog>
 <div id="navFundo" onclick="fecharNav()"></div>
+<div id="novaVer" hidden><span>Nova versão disponível.</span><button type="button" class="btn btn-p" onclick="atualizarAgora()">Atualizar agora</button></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <div id="relView" hidden></div>
 
@@ -366,7 +369,23 @@ function telaMovimentos(){ const M=db.lista('movimentos');
   return `<h1>Movimentações</h1><p class="sub">Entradas e transferências de local, da mais recente para a mais antiga.</p><div class="card">${M.length?`<table class="t"><tr><th>Data</th><th>Tipo</th><th>Chassi / código</th><th>Item</th><th>De</th><th>Para</th><th class="r">Qtd</th><th>Observação</th></tr>${M.map(m=>`<tr><td>${new Date(m.em).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</td><td>${esc(m.tipo)}</td><td><b>${esc(m.chassi)}</b></td><td>${esc(m.modelo)}</td><td>${esc(m.de)}</td><td>${esc(m.para)}</td><td class="r">${m.qtd!=null?m.qtd:1}</td><td>${esc(m.obs||'')}</td></tr>`).join('')}</table>`:'<div class="vazio">Nenhuma movimentação registrada ainda.</div>'}</div>`; }
 
 // ═════════ BANCO (Supabase próprio) · cache em memória + gravação direta no banco ═════════
-const APP_VERSION='v0.1.5';
+const APP_VERSION='v0.1.6';
+// ── atualização automática: compara a versão publicada no GitHub Pages com a que está aberta ──
+async function checarVersao(){
+  try{ const r=await fetch(location.pathname+'?_v='+Date.now(),{cache:'no-store'}); if(!r.ok) return;
+    const m=(await r.text()).match(/APP_VERSION='([^']+)'/); if(m&&m[1]!==APP_VERSION) novaVersao(m[1]); }catch(_e){}
+}
+function novaVersao(v){
+  let n=0; try{ const x=JSON.parse(sessionStorage.getItem('vc_upd')||'{}'); n=(x.v===v&&Date.now()-x.t<300000)?x.n:0; }catch(_e){}
+  if(n>=2) return; // não entra em laço se o GitHub Pages ainda estiver servindo a versão antiga
+  if(typeof FV!=='undefined'&&FV&&FV.sujo){ const b=$('novaVer'); if(b){ b.querySelector('span').textContent='Nova versão '+v+' disponível. Salve a ficha e atualize.'; b.hidden=false; } return; }
+  atualizarAgora(v,n);
+}
+function atualizarAgora(v,n){ try{ sessionStorage.setItem('vc_upd',JSON.stringify({v,t:Date.now(),n:(n||0)+1})); }catch(_e){}
+  location.replace(location.pathname+'?v='+encodeURIComponent(v||Date.now())); }
+if(/[?&]v=/.test(location.search)) history.replaceState(null,'',location.pathname+location.hash);
+setTimeout(checarVersao,5000); setInterval(checarVersao,120000);
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') checarVersao(); });
 const SB_URL='https://hmznfanyotwqqonjdxth.supabase.co', SB_KEY='sb_publishable_deHWae2ysLOwSQFwSfTV7Q_0irXh_9x';
 const sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
 let EMP_ID=null, USR=null, C={empresa:{},locais:[],modelos:[],clientes:[],fornecedores:[],transportadores:[],vendedores:[],itens:[],veiculos:[],eventos:[],recebimentos:[],receb_itens:[],saldos:[],movimentos:[],vendas:[],venda_veiculos:[],venda_itens:[],entregas:[]};
@@ -747,9 +766,9 @@ function relFV(tipo){ document.querySelectorAll('.menu-rel').forEach(m=>m.classL
     const instr=(f.instr||'').trim(), maquina=/Cartão/.test(f.pag||'');
     const dados=instr?`<div class="box"><b>Instruções de pagamento</b><br>${esc(instr).replace(/\n/g,'<br>')}</div>`:maquina?'':(e.pix||e.banco)?`<div class="box"><b>Pagamento à ${esc(e.razao_social||'empresa')}</b>${e.cnpj?' · CNPJ '+esc(e.cnpj):''}${e.pix?'<br>PIX: <b>'+esc(e.pix)+'</b>':''}${e.banco?'<br>'+esc(e.banco)+(e.agencia?' · ag. '+esc(e.agencia):'')+(e.conta?' · conta '+esc(e.conta):''):''}${e.favorecido?'<br>Favorecido: '+esc(e.favorecido):''}</div>`:'<div class="box">Os dados para pagamento serão enviados pelo vendedor.</div>';
     const terc=(comFora&&t.comV)||(frFora&&frV);
-    corpo=`<p>Olá, <b>${esc(cli.nome||'')}</b>. Confirmamos o seu pedido com os itens e as condições abaixo.</p><table><tr><th>Veículo</th><th class="r">Valor</th></tr>${carros.map(c=>lin(esc(c.nome),brl(c.preco))).join('')}${opcs.map(x=>lin('Opcional: '+esc(x.desc),brl(x.valor*qtd))).join('')}${t.desc?lin('Desconto','− '+brl(t.desc)):''}${frDentro&&frV?lin('Frete',brl(frV)):''}<tr class="tot"><td>Valor do veículo</td><td class="r">${brl(t.pedido)}</td></tr></table>
+    corpo=`<p>Olá, <b>${esc(cli.nome||'')}</b>. Confirmamos o seu pedido com os itens e as condições abaixo.</p><table><tr><th>Veículo</th><th class="r">Valor</th></tr>${carros.map(c=>lin(esc(c.nome),brl(c.preco))).join('')}${opcs.map(x=>lin('Opcional: '+esc(x.desc),brl(x.valor*qtd))).join('')}${t.desc?lin('Desconto','− '+brl(t.desc)):''}${frDentro&&frV?lin('Frete',brl(frV)):''}${comFora&&t.comV?`<tr><td>Valor do veículo</td><td class="r">${brl(t.pedido)}</td></tr>${lin('(−) Comissão paga diretamente ao representante','− '+brl(t.comV))}<tr class="tot"><td>Valor a pagar pelo veículo (nota fiscal)</td><td class="r">${brl(t.nf)}</td></tr>`:`<tr class="tot"><td>Valor do veículo</td><td class="r">${brl(t.pedido)}</td></tr>`}</table>
       <h3>Como pagar</h3><p>Forma de pagamento: <b>${formaTxt}</b></p>
-      <div class="kpis"><div><small>Total a pagar</small><b>${brl(t.totComprador)}</b></div>${avEnt?`${entV>0?`<div><small>${f.entRec?'Já pago (entrada)':'Entrada a pagar'}</small><b>${brl(entV)}</b></div>`:''}<div><small>${f.saldoEnt?'Falta pagar na entrega':'Falta pagar'}</small><b>${brl(saldoV)}</b></div>`:`<div><small>Total a pagar pelo veículo</small><b>${brl(t.nf)}</b></div>`}${terc?`<div><small>Total a pagar a terceiros</small><b>${brl(t.totComprador-t.nf)}</b></div>`:''}</div>
+      <div class="kpis"><div><small>Total a pagar</small><b>${brl(t.totComprador)}</b></div>${avEnt?`<div><small>Pelo veículo (NF)</small><b>${brl(t.nf)}</b></div>${entV>0?`<div><small>${f.entRec?'Já pago (entrada)':'Entrada a pagar'}</small><b>${brl(entV)}</b></div>`:''}<div><small>${f.saldoEnt?'Falta pagar na entrega':'Falta pagar'}</small><b>${brl(saldoV)}</b></div>`:`<div><small>Pelo veículo (NF)</small><b>${brl(t.nf)}</b></div>`}${terc?`<div><small>${comFora&&t.comV&&!(frFora&&frV)?'A terceiros (comissão)':'Total a pagar a terceiros'}</small><b>${brl(t.totComprador-t.nf)}</b></div>`:''}</div>
       ${dados}${terc?`<h3>Pagamentos a terceiros</h3><div class="duo">${comFora&&t.comV?benef('Comissão ao representante',cm,t.comV,'pago diretamente por você'):''}${frFora&&frV?benef('Frete ao transportador',tr,frV,'pago diretamente por você'):''}</div>`:''}
       <h3>Entrega e garantia</h3><p>${entTxt}${f.prazo?' · '+esc(f.prazo):''}${f.fre.tipo!=='retira'&&f.fre.end?'<br>Endereço de entrega: '+esc(f.fre.end):''}<br>Garantia: ${esc(f.garantia||'conforme manual do fabricante')}</p>${f.obs?'<p>'+esc(f.obs)+'</p>':''}`; }
   const v=$('relView');
