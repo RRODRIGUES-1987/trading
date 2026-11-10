@@ -1,4 +1,4 @@
-<!-- VERUS CARRINHOS v0.1.6 | Gerado: 2026-11-09 UTC -->
+<!-- VERUS CARRINHOS v0.1.7 | Gerado: 2026-11-09 UTC -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -225,7 +225,7 @@ const MODS={
   home:{nome:'Início',itens:[['home','Início']]},
   cad:{nome:'Cadastros',itens:[['modelos','Modelos e preços'],['itens','Peças e acessórios'],['clientes','Clientes'],['fornecedores','Fornecedores'],['transportadores','Transportadores'],['vendedores','Vendedores e comissionados'],['locais','Locais de estoque'],['empresa','Empresa e dados']]},
   log:{nome:'Logística',itens:[['estoque','Estoque'],['recebimento','Recebimento'],['movimentos','Movimentações'],['entregas','Entregas']]},
-  fin:{nome:'Financeiro',itens:[['receber','Contas a receber',1],['pagar','Contas a pagar',1],['fluxo','Fluxo de caixa',1]]},
+  fin:{nome:'Financeiro',itens:[['receber','Contas a receber'],['pagar','Contas a pagar',1],['fluxo','Fluxo de caixa',1]]},
   com:{nome:'Comercial',itens:[['fichas','Fichas de venda'],['painel','Painel de vendas',1]]},
   pos:{nome:'Pós-venda',itens:[['garantias','Garantias',1],['rastreio','Rastreabilidade',1]]},
 };
@@ -369,7 +369,7 @@ function telaMovimentos(){ const M=db.lista('movimentos');
   return `<h1>Movimentações</h1><p class="sub">Entradas e transferências de local, da mais recente para a mais antiga.</p><div class="card">${M.length?`<table class="t"><tr><th>Data</th><th>Tipo</th><th>Chassi / código</th><th>Item</th><th>De</th><th>Para</th><th class="r">Qtd</th><th>Observação</th></tr>${M.map(m=>`<tr><td>${new Date(m.em).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</td><td>${esc(m.tipo)}</td><td><b>${esc(m.chassi)}</b></td><td>${esc(m.modelo)}</td><td>${esc(m.de)}</td><td>${esc(m.para)}</td><td class="r">${m.qtd!=null?m.qtd:1}</td><td>${esc(m.obs||'')}</td></tr>`).join('')}</table>`:'<div class="vazio">Nenhuma movimentação registrada ainda.</div>'}</div>`; }
 
 // ═════════ BANCO (Supabase próprio) · cache em memória + gravação direta no banco ═════════
-const APP_VERSION='v0.1.6';
+const APP_VERSION='v0.1.7';
 // ── atualização automática: compara a versão publicada no GitHub Pages com a que está aberta ──
 async function checarVersao(){
   try{ const r=await fetch(location.pathname+'?_v='+Date.now(),{cache:'no-store'}); if(!r.ok) return;
@@ -388,7 +388,7 @@ setTimeout(checarVersao,5000); setInterval(checarVersao,120000);
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') checarVersao(); });
 const SB_URL='https://hmznfanyotwqqonjdxth.supabase.co', SB_KEY='sb_publishable_deHWae2ysLOwSQFwSfTV7Q_0irXh_9x';
 const sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
-let EMP_ID=null, USR=null, C={empresa:{},locais:[],modelos:[],clientes:[],fornecedores:[],transportadores:[],vendedores:[],itens:[],veiculos:[],eventos:[],recebimentos:[],receb_itens:[],saldos:[],movimentos:[],vendas:[],venda_veiculos:[],venda_itens:[],entregas:[]};
+let EMP_ID=null, USR=null, C={empresa:{},locais:[],modelos:[],clientes:[],fornecedores:[],transportadores:[],vendedores:[],itens:[],veiculos:[],eventos:[],recebimentos:[],receb_itens:[],saldos:[],movimentos:[],vendas:[],venda_veiculos:[],venda_itens:[],entregas:[],titulos:[]};
 // campos da tela ↔ colunas do banco
 const MAPA={
   clientes:{nome:'nome',doc:'documento',tel:'telefone',email:'email',end:'endereco',cidade:'cidade_uf',obs:'obs'},
@@ -413,6 +413,7 @@ async function carregar(){
   C.venda_veiculos=await q(sb.from('venda_veiculos').select('*').eq('empresa_id',EMP_ID).limit(20000))||[];
   C.venda_itens=await q(sb.from('venda_itens').select('*').eq('empresa_id',EMP_ID).limit(20000))||[];
   C.entregas=await q(sb.from('entregas').select('*').eq('empresa_id',EMP_ID).limit(20000))||[];
+  C.titulos=await q(sb.from('titulos').select('*').eq('empresa_id',EMP_ID).limit(50000))||[];
   C.empresa=(await q(sb.from('empresas').select('*').eq('id',EMP_ID)))[0]||{};
   C.locais.sort((a,b)=>a.nome.localeCompare(b.nome)); C.modelos.sort((a,b)=>a.nome.localeCompare(b.nome));
 }
@@ -804,7 +805,64 @@ function tabEnt(){ const q=filtroEnt.q.toUpperCase();
   return R.length?`<table class="t"><tr><th>Data</th><th>Horário</th><th>Ficha</th><th>Cliente</th><th>Chassis</th><th>Local</th><th>Quem entrega</th><th>Tipo</th><th class="r">Receber na entrega</th><th>Situação</th></tr>${R.map(r=>`<tr class="click" onclick="irFicha('${r.v.id}')"><td><b>${r.e.data_prevista?dBR(r.e.data_prevista):'a definir'}</b></td><td>${esc(r.e.janela||'—')}</td><td>${esc(r.v.numero||'—')}</td><td>${esc(r.cli)}</td><td>${esc(r.ch.join(', ')||'—')}</td><td>${esc(r.e.endereco||'—')}</td><td>${esc(r.quem)}</td><td>${r.e.tipo==='cortesia'?'sem cobrança':'frete'}</td><td class="r">${r.v.saldo_na_entrega?'<b>'+brl(Math.max(0,(+r.v.valor_nf||0)-(+r.v.entrada||0)))+'</b> PIX':'—'}</td><td><span class="tag ${(ST_ENT[r.e.status]||ST_ENT.programada)[1]}">${(ST_ENT[r.e.status]||ST_ENT.programada)[0]}</span></td></tr>`).join('')}</table>`
     :'<div class="vazio">Nenhuma entrega com esses filtros. As solicitações aparecem aqui quando uma ficha de venda é salva com entrega.</div>'; }
 function irFicha(id){ mod='com'; tela='fichas'; abrirFV(id); }
-const TELAS={ home:telaHome, fichas:telaFichas, entregas:telaEntregas, itens:()=>telaCad('itens'), modelos:telaModelos, clientes:()=>telaCad('clientes'), fornecedores:()=>telaCad('fornecedores'), transportadores:()=>telaCad('transportadores'), vendedores:()=>telaCad('vendedores'), locais:telaLocais, empresa:telaEmpresa,
+// ───────── financeiro · contas a receber (títulos gerados pelas fichas + avulsos) ─────────
+let filtroRec={q:'',st:'aberto'};
+const FORMAS_REC=['PIX','Transferência','Cartão de crédito','Cartão de débito','Boleto','Dinheiro','Financiamento'];
+const diasAte=d=>Math.round((new Date(d+'T12:00:00')-new Date(hoje()+'T12:00:00'))/864e5);
+function situRec(t){ if(t.status==='pago') return ['recebido','t-disp']; if(t.status==='cancelado') return ['cancelado','t-red'];
+  const d=diasAte(t.vencimento); if(d<0) return ['vencido há '+(-d)+(d===-1?' dia':' dias'),'t-red']; if(d===0) return ['vence hoje','t-red']; if(d<=7) return ['em '+d+(d===1?' dia':' dias'),'t-red']; return ['aberto','t-res']; }
+function telaReceber(){ const T=C.titulos.filter(t=>t.tipo==='receber'), ab=T.filter(t=>t.status==='aberto'), mes=hoje().slice(0,7);
+  const soma=L=>L.reduce((a,t)=>a+(+t.valor||0),0), venc=ab.filter(t=>diasAte(t.vencimento)<0), prox=ab.filter(t=>{ const d=diasAte(t.vencimento); return d>=0&&d<=7; }), rec=T.filter(t=>t.status==='pago'&&String(t.pago_em||'').slice(0,7)===mes);
+  const nm=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'][+mes.slice(5)-1];
+  const qt=(L,z)=>L.length?L.length+(L.length>1?' títulos':' título'):z;
+  $('acoes').innerHTML=`<button class="btn btn-p" onclick="formTitulo()">+ Título avulso</button>`;
+  return `<h1>Contas a receber</h1><p class="sub">Títulos gerados pelas fichas de venda (valor da NF) e lançamentos avulsos.</p>
+  <div class="kpis"><div class="card kpi"><small>Em aberto</small><b>${brl(soma(ab))}</b><small>${qt(ab,'nenhum')}</small></div>
+  <div class="card kpi"><small>Vencidos</small><b ${venc.length?'style="color:var(--red)"':''}>${brl(soma(venc))}</b><small>${qt(venc,'nenhum')}</small></div>
+  <div class="card kpi"><small>Próximos 7 dias</small><b>${brl(soma(prox))}</b><small>${qt(prox,'nenhum')}${prox.length===1?' · '+dBR(prox[0].vencimento).slice(0,5):''}</small></div>
+  <div class="card kpi"><small>Recebido em ${nm}</small><b>${brl(rec.reduce((a,t)=>a+(+t.valor_pago||+t.valor||0),0))}</b><small>${qt(rec,'nenhum')}</small></div></div>
+  <div class="card"><div class="filtros"><input placeholder="Buscar por ficha, cliente ou descrição" value="${esc(filtroRec.q)}" oninput="filtroRec.q=this.value;$('recTab').innerHTML=tabRec()">
+  <select onchange="filtroRec.st=this.value;$('recTab').innerHTML=tabRec()">${[['aberto','Em aberto'],['pago','Recebidos'],['','Todos'],['cancelado','Cancelados']].map(o=>`<option value="${o[0]}" ${filtroRec.st===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select></div><div id="recTab">${tabRec()}</div></div>`; }
+function tabRec(){ const q=filtroRec.q.toUpperCase();
+  const R=C.titulos.filter(t=>t.tipo==='receber').map(t=>({t,v:C.vendas.find(x=>x.id===t.venda_id)||{}}))
+    .filter(r=>(!filtroRec.st||r.t.status===filtroRec.st)&&(!q||((r.v.numero||'')+' '+(r.t.pessoa||'')+' '+(r.t.descricao||'')).toUpperCase().includes(q)))
+    .sort((a,b)=>String(a.t.vencimento).localeCompare(String(b.t.vencimento))||String(a.v.numero||'').localeCompare(String(b.v.numero||'')));
+  const tot=R.reduce((a,r)=>a+(+r.t.valor||0),0);
+  return R.length?`<table class="t"><tr><th>Vencimento</th><th>Ficha</th><th>Cliente</th><th>Parcela</th><th class="r">Valor</th><th>Situação</th><th>Recebido</th><th></th></tr>${R.map(r=>{ const s=situRec(r.t), perto=r.t.status==='aberto'&&diasAte(r.t.vencimento)<=7;
+      return `<tr><td>${perto?'<b>':''}${dBR(r.t.vencimento)}${perto?'</b>':''}</td><td>${r.v.numero?`<a class="mini" style="margin:0" onclick="irFicha('${r.v.id}')">${esc(r.v.numero)}</a>`:'<span class="sub" style="margin:0">avulso</span>'}</td><td>${esc(r.t.pessoa||'—')}</td><td>${esc(r.t.descricao||r.t.parcela||'—')}</td><td class="r">${perto?'<b>':''}${brl(r.t.valor)}${perto?'</b>':''}</td><td><span class="tag ${s[1]}">${s[0]}</span></td><td>${r.t.status==='pago'?dBR(r.t.pago_em)+(r.t.forma_pagamento?' · '+esc(r.t.forma_pagamento):'')+(+r.t.valor_pago&&+r.t.valor_pago!==+r.t.valor?' · '+brl(r.t.valor_pago):''):'—'}</td>
+      <td class="r" style="white-space:nowrap">${r.t.status==='aberto'?`<button class="btn btn-s" onclick="formBaixa('${r.t.id}')">Baixar</button>`:''}${r.t.status==='pago'?`<a class="mini" onclick="estornarBaixa('${r.t.id}')">estornar</a>`:''}${r.t.origem==='manual'&&r.t.status!=='pago'?`<a class="mini" onclick="formTitulo('${r.t.id}')">editar</a>`:''}</td></tr>`; }).join('')}
+    <tr><td colspan="4"><b>${R.length} título(s)</b></td><td class="r"><b>${brl(tot)}</b></td><td colspan="3"></td></tr></table>`
+    :'<div class="vazio">Nenhum título com esses filtros.</div>'; }
+function formBaixa(id){ const t=C.titulos.find(x=>x.id===id); if(!t) return; const v=C.vendas.find(x=>x.id===t.venda_id)||{};
+  $('dlgT').textContent='Baixar título'+(v.numero?' · '+v.numero:'')+' · '+(t.descricao||t.parcela||'');
+  $('dlgB').innerHTML=`<p class="sub" style="margin:0 0 12px">${esc(t.pessoa||'')} · vencimento ${dBR(t.vencimento)} · ${brl(t.valor)}</p><div class="grid">
+    <div class="campo c3"><label for="bx_d">Data do recebimento</label><input id="bx_d" type="date" value="${hoje()}"></div>
+    <div class="campo c3"><label for="bx_v">Valor recebido</label><input id="bx_v" inputmode="decimal" value="${fmtIn(t.valor)}"></div>
+    <div class="campo c3"><label for="bx_f">Forma</label><select id="bx_f">${FORMAS_REC.map(f=>`<option ${/Cartão/.test(t.descricao||'')&&f==='Cartão de crédito'||!/Cartão/.test(t.descricao||'')&&f==='PIX'?'selected':''}>${f}</option>`).join('')}</select></div>
+    <div class="campo c3"><label for="bx_o">Observação</label><input id="bx_o" placeholder="comprovante, conta…" value="${esc(t.obs||'')}"></div></div>`;
+  $('dlgF').innerHTML=`<button class="btn" onclick="dlg.close()">Cancelar</button><button class="btn btn-p" onclick="baixarTitulo('${id}')">Confirmar recebimento</button>`; dlg.showModal(); }
+async function baixarTitulo(id){ const d=$('bx_d').value, v=num($('bx_v').value); if(!d||!(v>0)){ toast('Informe a data e o valor recebido'); return; }
+  const ok=await exec(()=>q(sb.from('titulos').update({status:'pago',pago_em:d,valor_pago:v,forma_pagamento:$('bx_f').value,obs:$('bx_o').value||null,baixado_por:USR.id,atualizado_em:new Date().toISOString()}).eq('id',id)),'Recebimento registrado');
+  if(ok) dlg.close(); }
+async function estornarBaixa(id){ const t=C.titulos.find(x=>x.id===id); if(!t||!confirm('Estornar o recebimento de '+brl(t.valor_pago||t.valor)+' ('+(t.descricao||'')+')? O título volta a ficar em aberto.')) return;
+  await exec(()=>q(sb.from('titulos').update({status:'aberto',pago_em:null,valor_pago:null,forma_pagamento:null,baixado_por:null,atualizado_em:new Date().toISOString()}).eq('id',id)),'Recebimento estornado'); }
+function formTitulo(id){ const t=id?C.titulos.find(x=>x.id===id)||{}:{};
+  $('dlgT').textContent=id?'Editar título avulso':'Novo título a receber';
+  $('dlgB').innerHTML=`<div class="grid">
+    <div class="campo c4"><label for="ta_p">Cliente / pagador</label><input id="ta_p" list="ta_cl" value="${esc(t.pessoa||'')}" placeholder="nome"><datalist id="ta_cl">${C.clientes.map(c=>`<option value="${esc(c.nome)}">`).join('')}</datalist></div>
+    <div class="campo c2"><label for="ta_doc">CPF/CNPJ</label><input id="ta_doc" value="${esc(t.documento_pessoa||'')}"></div>
+    <div class="campo c6"><label for="ta_d">Descrição</label><input id="ta_d" value="${esc(t.descricao||'')}" placeholder="peças avulsas, serviço, reembolso…"></div>
+    <div class="campo c3"><label for="ta_v">Vencimento</label><input id="ta_v" type="date" value="${esc(t.vencimento||hoje())}"></div>
+    <div class="campo c3"><label for="ta_val">Valor</label><input id="ta_val" inputmode="decimal" value="${t.valor?fmtIn(t.valor):''}" placeholder="0,00"></div></div>`;
+  $('dlgF').innerHTML=`${id?`<button class="btn btn-x" style="margin-right:auto" onclick="excluirTitulo('${id}')">Excluir</button>`:''}<button class="btn" onclick="dlg.close()">Cancelar</button><button class="btn btn-p" onclick="salvarTitulo('${id||''}')">Salvar</button>`; dlg.showModal(); }
+async function salvarTitulo(id){ const p=$('ta_p').value.trim(), val=num($('ta_val').value), venc=$('ta_v').value;
+  if(!p||!(val>0)||!venc){ toast('Informe pagador, vencimento e valor'); return; }
+  const cli=C.clientes.find(c=>c.nome===p), doc=$('ta_doc').value||(cli&&cli.documento)||null;
+  const row={pessoa:p,documento_pessoa:doc,descricao:$('ta_d').value||null,vencimento:venc,valor:val,atualizado_em:new Date().toISOString()};
+  const ok=await exec(()=>id?q(sb.from('titulos').update(row).eq('id',id)):ins('titulos',Object.assign({tipo:'receber',origem:'manual',status:'aberto'},row)),'Título salvo'); if(ok) dlg.close(); }
+async function excluirTitulo(id){ if(!confirm('Excluir este título avulso?')) return; const ok=await exec(()=>q(sb.from('titulos').delete().eq('id',id)),'Título excluído'); if(ok) dlg.close(); }
+
+const TELAS={ home:telaHome, fichas:telaFichas, entregas:telaEntregas, receber:telaReceber, itens:()=>telaCad('itens'), modelos:telaModelos, clientes:()=>telaCad('clientes'), fornecedores:()=>telaCad('fornecedores'), transportadores:()=>telaCad('transportadores'), vendedores:()=>telaCad('vendedores'), locais:telaLocais, empresa:telaEmpresa,
   estoque:telaEstoque, recebimento:telaRecebimento, movimentos:telaMovimentos };
 iniciar();
 </script>
